@@ -1,22 +1,40 @@
 import {AuthService} from "../shared/auth/AuthServiceKeycloak";
 import {ISlice} from "../shared/ISlice";
 
+export interface IAddress {
+  street: string;
+  number: string;
+  complement: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  stateCode: string;
+}
+
+export interface IDocument{
+  type: string;
+  identifier: string;
+  country: string;
+  complement: string;
+}
+
+export interface IPerson {
+  id: string;
+  name: string;
+  document: IDocument;
+}
 export interface IOrganization {
   id: string;
-  personId: string;
-  personName: string;
-  documentType: string;
-  documentNumber: string;
-  city: string;
-  responsibleId: string;
-  responsibleName: string;
+  organizationPerson: IPerson
+  responsiblePerson: IPerson;
   responsibleEmail: string;
-  responsibleDocumentType: string;
-  responsibleDocumentNumber: string;
+  address: IAddress;
 }
 
 export class OrganizationService {
-  private static readonly API_URL = 'http://localhost:8181/api/organization/flat'; // Ajuste a URL base conforme necessário
+  private static readonly API_URL = 'http://localhost:8181/api/organization'; // Ajuste a URL base conforme necessário
 
   static async getOrganizations(page: number = 0, size: number = 10): Promise<ISlice<IOrganization>> {
     try {

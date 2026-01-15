@@ -5,6 +5,7 @@ import { Panel } from 'primereact/panel';
 import { Button } from 'primereact/button';
 import { OrganizationService, IOrganization } from './OrganizationService';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
+import OrganizationDetails from './OrganizationDetails';
 
 const OrganizationList: React.FC = () => {
     const [organizations, setOrganizations] = useState<IOrganization[]>([]);
@@ -12,6 +13,7 @@ const OrganizationList: React.FC = () => {
     const [page, setPage] = useState<number>(0);
     const [isLastPage, setIsLastPage] = useState<boolean>(false);
     const [selectedOrganization, setSelectedOrganization] = useState<IOrganization | null>(null);
+    const [displayDetails, setDisplayDetails] = useState<boolean>(false);
 
     const ROWS_PER_PAGE = 2;
 
@@ -39,11 +41,11 @@ const OrganizationList: React.FC = () => {
     };
 
     const cnpjBodyTemplate = (rowData: IOrganization) => {
-        return <DocumentDisplay type="CNPJ" value={rowData.documentNumber} />;
+        return <DocumentDisplay type="CNPJ" value={rowData.organizationPerson.document.identifier} />;
     };
 
     const cpfBodyTemplate = (rowData: IOrganization) => {
-        return <DocumentDisplay type="CPF" value={rowData.responsibleDocumentNumber} />;
+        return <DocumentDisplay type="CPF" value={rowData.responsiblePerson.document.identifier} />;
     };
 
     // Rodapé para controle de carregamento manual/automático
@@ -64,6 +66,21 @@ const OrganizationList: React.FC = () => {
         </div>
     );
 
+    const actionBodyTemplate = (rowData: IOrganization) => {
+        return (
+            <Button
+                icon="pi pi-search"
+                rounded
+                text
+                severity="info"
+                onClick={() => {
+                    setSelectedOrganization(rowData);
+                    setDisplayDetails(true);
+                }}
+            />
+        );
+    };
+
     return (
         <div className="p-m-4">
             <Panel header="Gerenciamento de Organizações">
@@ -82,14 +99,22 @@ const OrganizationList: React.FC = () => {
                     tableStyle={{ minWidth: '50rem' }}
                     emptyMessage="Nenhuma organização encontrada."
                 >
-                    <Column field="personName" header="Nome" sortable bodyClassName="font-bold text-primary"/>
-                    <Column header="CNPJ" body={cnpjBodyTemplate} />
-                    <Column field="responsibleName" header="Responsável" sortable />
-                    <Column header="CPF Resp." body={cpfBodyTemplate} />
+                    <Column field="organizationPerson.name" header="Nome" sortable bodyClassName="font-bold text-primary"/>
+                    <Column header="Doc." body={cnpjBodyTemplate} />
+                    <Column field="responsiblePerson.name" header="Responsável" sortable />
+                    <Column header="Resp. Doc." body={cpfBodyTemplate} />
                     <Column field="responsibleEmail" header="E-mail" />
-                    <Column field="city" header="Cidade" sortable />
+                    <Column field="address.city" header="Cidade" sortable />
+                    <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '4rem' }} />
                 </DataTable>
             </Panel>
+
+            <OrganizationDetails
+                visible={displayDetails}
+                organization={selectedOrganization}
+                onHide={() => setDisplayDetails(false)}
+            />
+
         </div>
     );
 };
