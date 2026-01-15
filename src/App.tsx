@@ -3,9 +3,12 @@ import './index.css';
 import './App.css';
 
 // prime react
-import "primereact/resources/themes/lara-light-cyan/theme.css"; // Tema
+//import "primereact/resources/themes/lara-light-cyan/theme.css"; // Tema
+// import "primereact/resources/themes/md-dark-indigo/theme.css";
+import "primereact/resources/themes/saga-orange/theme.css";
 import "primereact/resources/primereact.min.css";               // Core CSS
 import "primeicons/primeicons.css";
+import "primeflex/primeflex.css";
 
 import MainLayout from './components/main/MainLayout';
 import UserList from './components/users/UserList';
