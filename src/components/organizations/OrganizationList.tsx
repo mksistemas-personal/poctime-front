@@ -92,6 +92,7 @@ const OrganizationList: React.FC = () => {
                     label="Nova Organização"
                     icon="pi pi-plus"
                     severity="success"
+                    rounded
                     onClick={() => setDisplayManager(true)}
                     size="small"
                 />

@@ -55,8 +55,8 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
 
     const footer = (
         <div className="flex justify-content-end gap-2 mt-4">
-            <Button label="Cancelar" icon="pi pi-times" outlined onClick={onHide} severity="danger" size="small" />
-            <Button label="Salvar" icon="pi pi-check" onClick={handleSave} severity="success" size="small"/>
+            <Button label="Cancelar" icon="pi pi-times" outlined onClick={onHide} severity="danger" rounded size="small" />
+            <Button label="Salvar" icon="pi pi-check" onClick={handleSave} severity="success" rounded size="small"/>
         </div>
     );
 
