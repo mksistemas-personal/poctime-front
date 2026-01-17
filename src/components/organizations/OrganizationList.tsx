@@ -6,6 +6,7 @@ import { Button } from 'primereact/button';
 import { OrganizationService, IOrganization } from './OrganizationService';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
 import OrganizationDetails from './OrganizationDetails';
+import OrganizationManager from './OrganizationManager';
 
 const OrganizationList: React.FC = () => {
     const [organizations, setOrganizations] = useState<IOrganization[]>([]);
@@ -14,6 +15,7 @@ const OrganizationList: React.FC = () => {
     const [isLastPage, setIsLastPage] = useState<boolean>(false);
     const [selectedOrganization, setSelectedOrganization] = useState<IOrganization | null>(null);
     const [displayDetails, setDisplayDetails] = useState<boolean>(false);
+    const [displayManager, setDisplayManager] = useState<boolean>(false);
 
     const ROWS_PER_PAGE = 2;
 
@@ -59,6 +61,7 @@ const OrganizationList: React.FC = () => {
                     onClick={() => loadOrganizations(page + 1)} 
                     loading={loading}
                     severity="success" rounded
+                    size="small"
                 />
             ) : (
                 <span className="text-500 italic py-2">Todas as organizações foram carregadas</span>
@@ -81,9 +84,24 @@ const OrganizationList: React.FC = () => {
         );
     };
 
+    const headerTemplate = (options: any) => {
+        return (
+            <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%' }}>
+                <span className="text-xl font-bold">Gerenciamento de Organizações</span>
+                <Button
+                    label="Nova Organização"
+                    icon="pi pi-plus"
+                    severity="success"
+                    onClick={() => setDisplayManager(true)}
+                    size="small"
+                />
+            </div>
+        );
+    };
+
     return (
         <div className="p-m-4">
-            <Panel header="Gerenciamento de Organizações">
+            <Panel headerTemplate={headerTemplate}>
                 <DataTable 
                     value={organizations} 
                     selectionMode="single"
@@ -113,6 +131,12 @@ const OrganizationList: React.FC = () => {
                 visible={displayDetails}
                 organization={selectedOrganization}
                 onHide={() => setDisplayDetails(false)}
+            />
+
+            <OrganizationManager
+                visible={displayManager}
+                onHide={() => setDisplayManager(false)}
+                onSave={(org) => console.log('Salvar organização:', org)}
             />
 
         </div>

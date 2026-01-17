@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog } from 'primereact/dialog';
+import { Sidebar } from 'primereact/sidebar';
 import { IOrganization } from './OrganizationService';
 import { Divider } from 'primereact/divider';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
@@ -14,46 +14,55 @@ const OrganizationDetails: React.FC<OrganizationDetailsProps> = ({ visible, orga
     if (!organization) return null;
 
     return (
-        <Dialog 
-            header={`Detalhes: ${organization.organizationPerson.name}`} 
+        <Sidebar 
             visible={visible} 
-            style={{ width: '50vw' }} 
-            onHide={onHide}
-            breakpoints={{ '960px': '75vw', '641px': '100vw' }}
+            onHide={onHide} 
+            position="right" 
+            style={{ width: '30rem' }}
+            header={<h4 className="m-0">Detalhes da Organização</h4>}
+            className="p-sidebar-sm"
         >
-            <div className="grid">
-                <div className="col-12 md:col-6">
-                    <h5>Dados da Organização</h5>
-                    <p><strong>Nome:</strong> {organization.organizationPerson.name}</p>
-                    <p><strong>CNPJ:</strong> <DocumentDisplay type="CNPJ" value={organization.organizationPerson.document.identifier} /></p>
+            <div className="grid mt-2">
+                <div className="col-12 py-0">
+                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1 uppercase text-xs">Dados da Organização</h6>
+                    <p className="mb-1 text-sm"><strong>Nome:</strong> {organization.organizationPerson.name}</p>
+                    <p className="text-sm"><strong>CNPJ:</strong> <DocumentDisplay type="CNPJ" value={organization.organizationPerson.document.identifier} /></p>
                 </div>
-                
-                <div className="col-12 md:col-6">
-                    <h5>Responsável</h5>
-                    <p><strong>Nome:</strong> {organization.responsiblePerson.name}</p>
-                    <p><strong>E-mail:</strong> {organization.responsibleEmail}</p>
-                    <p><strong>CPF:</strong> <DocumentDisplay type="CPF" value={organization.responsiblePerson.document.identifier} /></p>
+            
+                <div className="col-12 py-0 mt-3">
+                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1 uppercase text-xs">Responsável</h6>
+                    <p className="mb-1 text-sm"><strong>Nome:</strong> {organization.responsiblePerson.name}</p>
+                    <p className="mb-1 text-sm"><strong>E-mail:</strong> {organization.responsibleEmail}</p>
+                    <p className="text-sm"><strong>CPF:</strong> <DocumentDisplay type="CPF" value={organization.responsiblePerson.document.identifier} /></p>
                 </div>
 
-                <Divider />
-
-                <div className="col-12">
-                    <h5>Endereço</h5>
-                    <div className="grid">
-                        <div className="col-12 md:col-6">
-                            <p><strong>Rua:</strong> {organization.address.street}, {organization.address.number}</p>
-                            <p><strong>Bairro:</strong> {organization.address.neighborhood}</p>
-                            <p><strong>Complemento:</strong> {organization.address.complement || 'N/A'}</p>
+                <div className="col-12 py-0 mt-3">
+                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1 uppercase text-xs">Endereço</h6>
+                    <div className="grid p-0 m-0">
+                        <div className="col-12 p-0 mb-1 text-sm">
+                            <p className="m-0"><strong>Rua:</strong> {organization.address.street}, {organization.address.number}</p>
                         </div>
-                        <div className="col-12 md:col-6">
-                            <p><strong>Cidade:</strong> {organization.address.city} - {organization.address.stateCode}</p>
-                            <p><strong>CEP:</strong> {organization.address.zipCode}</p>
-                            <p><strong>País:</strong> {organization.address.country}</p>
+                        <div className="col-12 p-0 mb-1 text-sm">
+                            <p className="m-0"><strong>Bairro:</strong> {organization.address.neighborhood}</p>
                         </div>
+                        <div className="col-12 p-0 mb-1 text-sm">
+                            <p className="m-0"><strong>Cidade:</strong> {organization.address.city} - {organization.address.stateCode}</p>
+                        </div>
+                        <div className="col-6 p-0 mb-1 text-sm">
+                            <p className="m-0"><strong>CEP:</strong> {organization.address.zipCode}</p>
+                        </div>
+                        <div className="col-6 p-0 mb-1 text-sm text-right">
+                            <p className="m-0"><strong>País:</strong> {organization.address.country}</p>
+                        </div>
+                        {organization.address.complement && (
+                            <div className="col-12 p-0 text-sm italic text-600 mt-1">
+                                <strong>Comp:</strong> {organization.address.complement}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
-        </Dialog>
+        </Sidebar>
     );
 };
 

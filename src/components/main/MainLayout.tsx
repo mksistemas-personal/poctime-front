@@ -11,6 +11,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children, onNavigate }) => {
     const [selectedOrg, setSelectedOrg] = useState(null);
+    const [sidebarVisible, setSidebarVisible] = useState(true);
 
     // Mock de organizações para o seletor
     const organizations = [
@@ -24,6 +25,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onNavigate }) => {
             {/* Topbar Customizada */}
             <header className="surface-card shadow-2 h-4rem flex align-items-center justify-content-between px-4 z-5 sticky top-0">
                 <div className="flex align-items-center">
+                    <Button 
+                        icon="pi pi-bars" 
+                        onClick={() => setSidebarVisible(!sidebarVisible)} 
+                        className="p-button-text p-button-secondary mr-3"
+                    />
                     <img alt="logo" src="logo.svg" height="30" className="mr-4 cursor-pointer" onClick={() => onNavigate('dashboard')} />
                 </div>
 
@@ -65,26 +71,30 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, onNavigate }) => {
 
             <div className="flex flex-grow-1">
                 {/* Menu Lateral Simplificado */}
-                <aside className="hidden md:flex flex-column w-16rem surface-section border-right-1 surface-border shadow-1">
-                    <nav className="p-3">
-                        <ul className="list-none p-0 m-0">
-                            <li className="mb-2">
-                                <a onClick={() => onNavigate('dashboard')} className="p-ripple flex align-items-center cursor-pointer p-3 text-700 border-round hover:surface-100 transition-colors transition-duration-150">
-                                    <i className="pi pi-home mr-2 text-primary"></i>
-                                    <span className="font-medium">Dashboard</span>
-                                    <Ripple />
-                                </a>
-                            </li>
-                            <li className="mb-2">
-                                <a onClick={() => onNavigate('organizations')} className="p-ripple flex align-items-center cursor-pointer p-3 text-700 border-round hover:surface-100 transition-colors transition-duration-150">
-                                    <i className="pi pi-building mr-2 text-primary"></i>
-                                    <span className="font-medium">Organizações</span>
-                                    <Ripple />
-                                </a>
-                            </li>
-                            {/* Adicione outros itens conforme necessário */}
-                        </ul>
-                    </nav>
+                <aside 
+                    className={`flex flex-column surface-section border-right-1 surface-border shadow-1 transition-all transition-duration-300 ${sidebarVisible ? 'w-14rem' : 'w-0 p-0 border-none'}`}
+                    style={{ overflow: 'hidden' }}
+                >
+                    {sidebarVisible && (
+                        <nav className="p-2">
+                            <ul className="list-none p-0 m-0">
+                                <li className="mb-1">
+                                    <a onClick={() => onNavigate('dashboard')} className="p-ripple flex align-items-center cursor-pointer p-2 text-700 border-round hover:surface-100 transition-colors transition-duration-150">
+                                        <i className="pi pi-home mr-2 text-primary text-base"></i>
+                                        <span className="font-medium text-sm">Dashboard</span>
+                                        <Ripple />
+                                    </a>
+                                </li>
+                                <li className="mb-1">
+                                    <a onClick={() => onNavigate('organizations')} className="p-ripple flex align-items-center cursor-pointer p-2 text-700 border-round hover:surface-100 transition-colors transition-duration-150">
+                                        <i className="pi pi-building mr-2 text-primary text-base"></i>
+                                        <span className="font-medium text-sm">Organizações</span>
+                                        <Ripple />
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    )}
                 </aside>
 
                 {/* Área de Conteúdo */}
