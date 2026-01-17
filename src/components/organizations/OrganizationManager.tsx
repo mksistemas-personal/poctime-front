@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Sidebar } from 'primereact/sidebar';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-import { Divider } from 'primereact/divider';
 import { IOrganization } from './OrganizationService';
 
 interface OrganizationManagerProps {
