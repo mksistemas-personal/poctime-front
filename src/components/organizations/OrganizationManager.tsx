@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Sidebar } from 'primereact/sidebar';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
-import { IOrganization } from './OrganizationService';
+import { OrganizationService, IOrganization } from './OrganizationService';
+import OrganizationSelector from './OrganizationSelector';
+import {InputMask} from "primereact/inputmask";
 
 interface OrganizationManagerProps {
     visible: boolean;
@@ -30,6 +32,8 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
     };
 
     const [organization, setOrganization] = useState<IOrganization>(emptyOrganization);
+    const [selectedOrgProj, setSelectedOrgProj] = useState<any>(null);
+    const [isManualEntry, setIsManualEntry] = useState(false);
 
     const onInputChange = (e: React.ChangeEvent<HTMLInputElement>, path: string) => {
         const val = e.target.value;
@@ -46,11 +50,49 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
         });
     };
 
-    const handleSave = () => {
-        if (onSave) {
-            onSave(organization);
+    const handleOrgSelect = (e: any) => {
+        const selected = e.value;
+        if (selected) {
+            setOrganization(prev => ({
+                ...prev,
+                organizationPerson: {
+                    ...prev.organizationPerson,
+                    name: selected.personName,
+                    document: { 
+                        ...prev.organizationPerson.document, 
+                        identifier: selected.documentNumber 
+                    }
+                },
+                address: {
+                    ...prev.address,
+                    city: selected.city
+                }
+            }));
+            setIsManualEntry(false);
+        } else {
+            // Se limpar a seleção
+            setOrganization(emptyOrganization);
         }
-        onHide();
+    };
+
+    const handleAddNew = () => {
+        setOrganization(emptyOrganization);
+        setIsManualEntry(true);
+    };
+
+    const handleSave = async () => {
+        try {
+            const dataToSave = { ...organization };
+            const savedOrg = await OrganizationService.saveOrganization(dataToSave);
+            if (onSave) {
+                onSave(savedOrg);
+            }
+            onHide(); // Fecha a barra lateral após sucesso
+            setOrganization(emptyOrganization); // Reseta o formulário
+        } catch (error) {
+            console.error("Erro ao salvar organização:", error);
+            // Aqui você poderia adicionar um Toast da PrimeReact para mostrar o erro ao usuário
+        }
     };
 
     const footer = (
@@ -65,20 +107,51 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
             visible={visible} 
             onHide={onHide} 
             position="right" 
-            style={{ width: '30rem' }}
+            style={{ width: '35rem' }}
             header={<h4 className="m-0">Cadastrar Organização</h4>}
             className="p-sidebar-sm"
         >
-            <div className="p-fluid grid mt-2">
+            <div className="p-fluid grid mt-2 w-full">
                 <div className="col-12 py-0">
                     <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1">Dados da Organização</h6>
                     <div className="field mb-2">
                         <label htmlFor="orgName" className="text-xs font-bold mb-1 block">Nome da Organização</label>
-                        <InputText id="orgName" className="p-inputtext-sm" value={organization.organizationPerson.name} onChange={(e) => onInputChange(e, 'organizationPerson.name')} />
+                        {!isManualEntry ? (
+                                <OrganizationSelector 
+                                    value={selectedOrgProj}
+                                    onChange={handleOrgSelect}
+                                    onAddNew={handleAddNew}
+                                />
+                            ) : (
+                            <div className="flex gap-2">
+                                <InputText 
+                                    id="orgName" 
+                                    className="p-inputtext-sm flex-1" 
+                                    value={organization.organizationPerson.name} 
+                                    onChange={(e) => onInputChange(e, 'organizationPerson.name')} 
+                                    placeholder="Digite o novo nome"
+                                    autoFocus
+                                />
+                                <Button 
+                                    icon="pi pi-search" 
+                                    className="p-button-sm p-button-text" 
+                                    onClick={() => setIsManualEntry(false)} 
+                                    tooltip="Voltar para busca"
+                                />
+                            </div>
+                        )}
                     </div>
                     <div className="field mb-2">
                         <label htmlFor="cnpj" className="text-xs font-bold mb-1 block">CNPJ</label>
-                        <InputText id="cnpj" className="p-inputtext-sm" value={organization.organizationPerson.document.identifier} onChange={(e) => onInputChange(e, 'organizationPerson.document.identifier')} />
+                        <InputMask
+                            id="cnpj" 
+                            className="p-inputtext-sm"
+                            mask="99.999.999/9999-99"
+                            value={organization.organizationPerson.document.identifier}
+                            placeholder="00.000.000/0000-00"
+                            onChange={(e) => onInputChange(e as any, 'organizationPerson.document.identifier')}
+                            disabled={!isManualEntry && organization.organizationPerson.name !== ''}
+                        />
                     </div>
                 </div>
 

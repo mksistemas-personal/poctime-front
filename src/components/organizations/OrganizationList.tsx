@@ -137,10 +137,12 @@ const OrganizationList: React.FC = () => {
             <OrganizationManager
                 visible={displayManager}
                 onHide={() => setDisplayManager(false)}
-                onSave={(org) => console.log('Salvar organização:', org)}
-            />
+                onSave={(newOrg) => {
+                        loadOrganizations(0);
+                    }}
+                />
 
-        </div>
+            </div>
     );
 };
 
