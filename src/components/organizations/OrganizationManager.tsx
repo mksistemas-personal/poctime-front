@@ -54,6 +54,7 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
 
     const handleOrgSelect = (e: any) => {
         const selected = e.value;
+        setSelectedOrgProj(selected);
         if (selected) {
             setOrganization(prev => ({
                 ...prev,
@@ -79,6 +80,7 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
 
     const handleAddNew = () => {
         setOrganization(emptyOrganization);
+        setSelectedOrgProj(null);
         setIsManualEntry(true);
     };
 
@@ -91,6 +93,7 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
             }
             onHide(); // Fecha a barra lateral após sucesso
             setOrganization(emptyOrganization); // Reseta o formulário
+            setSelectedOrgProj(null);
         } catch (error: any) {
             console.error("Erro ao salvar organização:", error);
             toast.current?.show({
@@ -144,8 +147,13 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                                 <Button 
                                     icon="pi pi-search" 
                                     className="p-button-sm p-button-text" 
-                                    onClick={() => setIsManualEntry(false)} 
-                                    tooltip="Voltar para busca"
+                                    onClick={() => {
+                                        setIsManualEntry(false);
+                                        setSelectedOrgProj(null);
+                                        setOrganization(emptyOrganization);
+                                    }} 
+                                    tooltip="Voltar"
+                                    tooltipOptions={{ className: 'text-xs', position: 'top', mouseTrack: true, mouseTrackTop: 15 }}
                                 />
                             </div>
                         )}

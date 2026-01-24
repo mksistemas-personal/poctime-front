@@ -21,7 +21,7 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({ value, onCh
     const loadData = async () => {
         setLoading(true);
         try {
-            const response = await OrganizationService.getOrganizationsWithCity(0, 50);
+            const response = await OrganizationService.getOrganizationsWithCity(0, 9999, 'cnpj');
             setOrganizations(response.content);
         } catch (error) {
             console.error("Erro ao carregar organizações:", error);
@@ -32,21 +32,32 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({ value, onCh
 
     // Template para os itens na lista suspensa
     const itemTemplate = (option: IOrganizationWithCityProjection) => {
+        const isOrganization = !!option.id;
+        const hasCity = !!option.city;
         return (
-            <div className="flex flex-column gap-1 py-1 ">
-                <div className="flex justify-content-between align-items-center">
-                    <span className="font-bold text-primary">{option.personName}</span>
-                    <small className="text-500 flex align-items-center">
-                        <i className="pi pi-map-marker mr-1" style={{ fontSize: '0.7rem' }}></i>
-                        {option.city}
-                    </small>
-                </div>
-                <div className="text-sm">
-                    <DocumentDisplay 
-                        type={option.documentType as DocumentType} 
-                        value={option.documentNumber} 
-                    />
-                </div>
+            <div className="flex align-items-center gap-2 py-1 text-sm">
+                <i className={isOrganization ? "pi pi-building text-primary" : "pi pi-user text-600"} 
+                   title={isOrganization ? "Organização" : "Pessoa Jurídica"}
+                   style={{ fontSize: '1rem' }}></i>
+                
+                <span className="font-bold text-primary">{option.personName}</span>
+                
+                <span className="text-400">|</span>
+
+                <DocumentDisplay
+                    type={option.documentType as DocumentType}
+                    value={option.documentNumber}
+                />
+
+                {hasCity && (
+                    <>
+                        <span className="text-400">|</span>
+                        <span className="text-600 flex align-items-center">
+                            <i className="pi pi-map-marker mr-1" style={{ fontSize: '0.7rem' }}></i>
+                            {option.city}
+                        </span>
+                    </>
+                )}
             </div>
         );
     };
@@ -54,14 +65,29 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({ value, onCh
     // Template para o item selecionado no campo (quando fechado)
     const valueTemplate = (option: IOrganizationWithCityProjection, props: any) => {
         if (option) {
+            const isOrganization = !!option.id;
+            const hasCity = !!option.city;
             return (
-                <div className="flex align-items-center gap-2">
+                <div className="flex align-items-center gap-2 text-sm">
+                    <i className={isOrganization ? "pi pi-building text-primary" : "pi pi-user text-600"} 
+                       style={{ fontSize: '0.9rem' }}></i>
                     <span className="font-bold">{option.personName}</span>
-                    <span className="text-600">|</span>
-                    <DocumentDisplay 
-                        type={option.documentType as DocumentType} 
-                        value={option.documentNumber} 
+
+                    <span className="text-400">|</span>
+                    <DocumentDisplay
+                        type={option.documentType as DocumentType}
+                        value={option.documentNumber}
                     />
+
+                    {hasCity && (
+                        <>
+                            <span className="text-400">|</span>
+                            <span className="text-600 flex align-items-center">
+                                <i className="pi pi-map-marker mr-1" style={{ fontSize: '0.7rem' }}></i>
+                                {option.city}
+                            </span>
+                        </>
+                    )}
                 </div>
             );
         }
@@ -88,6 +114,7 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({ value, onCh
             options={organizations}
             onChange={onChange}
             optionLabel="personName"
+            dataKey="personId"
             placeholder="Selecione uma Organização"
             filter
             filterBy="personName,documentNumber"
@@ -96,8 +123,10 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({ value, onCh
             itemTemplate={itemTemplate}
             valueTemplate={valueTemplate}
             panelFooterTemplate={panelFooterTemplate}
-            className="w-full md:w-30rem"
+            className="w-full p-inputtext-sm"
             panelStyle={{ minWidth: '25rem' }}
+            scrollHeight="300px"
+            filterPlaceholder="Buscar..."
         />
     );
 };

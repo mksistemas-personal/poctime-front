@@ -76,10 +76,10 @@ export class OrganizationService {
     }
   }
 
-  static async getOrganizationsWithCity(page: number = 0, size: number = 10): Promise<ISlice<IOrganizationWithCityProjection>> {
+  static async getOrganizationsWithCity(page: number = 0, size: number = 10, documentType: string): Promise<ISlice<IOrganizationWithCityProjection>> {
     try {
       const tokenData = await AuthService.getAccessToken();
-      const url: string = `${this.API_ALL_WITH_CITY}?page=${page}&size=${size}`;
+      const url: string = `${this.API_ALL_WITH_CITY}?page=${page}&size=${size}&documentType=${documentType}`;
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${tokenData.access_token}`,
