@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Sidebar } from 'primereact/sidebar';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
+import { Toast } from 'primereact/toast';
 import { OrganizationService, IOrganization } from './OrganizationService';
 import OrganizationSelector from './OrganizationSelector';
 import {InputMask} from "primereact/inputmask";
@@ -15,8 +16,8 @@ interface OrganizationManagerProps {
 const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHide, onSave }) => {
     const emptyOrganization: IOrganization = {
         id: '',
-        organizationPerson: { id: '', name: '', document: { type: 'CNPJ', identifier: '', country: 'Brasil', complement: '' } },
-        responsiblePerson: { id: '', name: '', document: { type: 'CPF', identifier: '', country: 'Brasil', complement: '' } },
+        organizationPerson: { id: '', name: '', document: { type: 'cnpj', identifier: '', country: 'Brasil', complement: '' } },
+        responsiblePerson: { id: '', name: '', document: { type: 'cpf', identifier: '', country: 'Brasil', complement: '' } },
         responsibleEmail: '',
         address: {
             street: '',
@@ -26,7 +27,7 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
             city: '',
             state: '',
             zipCode: '',
-            country: 'Brasil',
+            country: 'BR',
             stateCode: ''
         }
     };
@@ -34,6 +35,7 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
     const [organization, setOrganization] = useState<IOrganization>(emptyOrganization);
     const [selectedOrgProj, setSelectedOrgProj] = useState<any>(null);
     const [isManualEntry, setIsManualEntry] = useState(false);
+    const toast = useRef<Toast>(null);
 
     const onInputChange = (e: React.ChangeEvent<HTMLInputElement>, path: string) => {
         const val = e.target.value;
@@ -89,9 +91,14 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
             }
             onHide(); // Fecha a barra lateral após sucesso
             setOrganization(emptyOrganization); // Reseta o formulário
-        } catch (error) {
+        } catch (error: any) {
             console.error("Erro ao salvar organização:", error);
-            // Aqui você poderia adicionar um Toast da PrimeReact para mostrar o erro ao usuário
+            toast.current?.show({
+                severity: 'error',
+                summary: 'Erro',
+                detail: error.message || 'Erro ao salvar organização',
+                life: 3000
+            });
         }
     };
 
@@ -103,14 +110,16 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
     );
 
     return (
-        <Sidebar 
-            visible={visible} 
-            onHide={onHide} 
-            position="right" 
-            style={{ width: '35rem' }}
-            header={<h4 className="m-0">Cadastrar Organização</h4>}
-            className="p-sidebar-sm"
-        >
+        <>
+            <Toast ref={toast} />
+            <Sidebar 
+                visible={visible} 
+                onHide={onHide} 
+                position="right" 
+                style={{ width: '35rem' }}
+                header={<h4 className="m-0">Cadastrar Organização</h4>}
+                className="p-sidebar-sm"
+            >
             <div className="p-fluid grid mt-2 w-full">
                 <div className="col-12 py-0">
                     <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1">Dados da Organização</h6>
@@ -203,6 +212,7 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
             </div>
             {footer}
         </Sidebar>
+        </>
     );
 };
 

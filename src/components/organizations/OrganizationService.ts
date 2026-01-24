@@ -1,5 +1,6 @@
 import {AuthService} from "../shared/auth/AuthServiceKeycloak";
 import {ISlice} from "../shared/ISlice";
+import {CommonService} from "../shared/CommonService";
 
 export interface IAddress {
   street: string;
@@ -41,9 +42,18 @@ export interface IOrganizationWithCityProjection {
   city: string;
 }
 
+interface IOrganizationRequest {
+  id: string | null;
+  person: IPerson;
+  address: IAddress;
+  responsiblePerson: IPerson;
+  responsibleEmail: string;
+}
+
 export class OrganizationService {
   private static readonly API_URL = 'http://localhost:8181/api/organization'; // Ajuste a URL base conforme necessário
   private static readonly API_ALL_WITH_CITY = `${OrganizationService.API_URL}/projection/all-with-city`;
+
 
   static async getOrganizations(page: number = 0, size: number = 10): Promise<ISlice<IOrganization>> {
     try {
@@ -56,7 +66,8 @@ export class OrganizationService {
         }
       });
       if (!response.ok) {
-        throw new Error('Erro ao buscar organizações');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao buscar organizações'));
       }
       return await response.json();
     } catch (error) {
@@ -76,7 +87,8 @@ export class OrganizationService {
         }
       });
       if (!response.ok) {
-        throw new Error('Erro ao buscar organizações');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao buscar organizações'));
       }
       return await response.json();
     } catch (error) {
@@ -86,6 +98,13 @@ export class OrganizationService {
   }
 
   static async saveOrganization(organization: IOrganization): Promise<IOrganization> {
+    const organizationRequest: IOrganizationRequest = {
+      id: null,
+      person: organization.organizationPerson,
+      address: organization.address,
+      responsiblePerson: organization.responsiblePerson,
+      responsibleEmail: organization.responsibleEmail,
+    };
     try {
       const tokenData = await AuthService.getAccessToken();
       const response = await fetch(this.API_URL, {
@@ -94,17 +113,18 @@ export class OrganizationService {
           'Authorization': `Bearer ${tokenData.access_token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(organization)
+        body: JSON.stringify(organizationRequest)
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Erro ao salvar organização');
+        console.log("Erro da Api: ", errorData);
+        throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao salvar organização'));
       }
-
       return await response.json();
+
     } catch (error) {
-      console.error("Erro ao salvar no OrganizationService:", error);
+      console.log("Erro ao salvar no OrganizationService:", error);
       throw error;
     }
   }
