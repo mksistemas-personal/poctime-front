@@ -8,20 +8,28 @@ interface OrganizationSelectorProps {
     value: any;
     onChange: (e: DropdownChangeEvent) => void;
     onAddNew: () => void;
+    documentType?: 'cnpj' | 'cpf';
+    placeholder?: string;
 }
 
-const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({ value, onChange, onAddNew }) => {
+const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({ 
+    value, 
+    onChange, 
+    onAddNew, 
+    documentType = 'cnpj',
+    placeholder = "Selecione uma Organização"
+}) => {
     const [organizations, setOrganizations] = useState<IOrganizationWithCityProjection[]>([]);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [documentType]);
 
     const loadData = async () => {
         setLoading(true);
         try {
-            const response = await OrganizationService.getOrganizationsWithCity(0, 9999, 'cnpj');
+            const response = await OrganizationService.getOrganizationsWithCity(0, 9999, documentType);
             setOrganizations(response.content);
         } catch (error) {
             console.error("Erro ao carregar organizações:", error);
@@ -115,7 +123,7 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({ value, onCh
             onChange={onChange}
             optionLabel="personName"
             dataKey="personId"
-            placeholder="Selecione uma Organização"
+            placeholder={placeholder}
             filter
             filterBy="personName,documentNumber"
             showClear

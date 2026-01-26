@@ -6,6 +6,8 @@ import { Toast } from 'primereact/toast';
 import { OrganizationService, IOrganization } from './OrganizationService';
 import OrganizationSelector from './OrganizationSelector';
 import {InputMask} from "primereact/inputmask";
+import ZipCodeSelector from '../shared/ZipCodeSelector';
+import { IZipCodeResponse } from '../shared/ZipCodeService';
 
 interface OrganizationManagerProps {
     visible: boolean;
@@ -16,8 +18,8 @@ interface OrganizationManagerProps {
 const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHide, onSave }) => {
     const emptyOrganization: IOrganization = {
         id: '',
-        organizationPerson: { id: '', name: '', document: { type: 'cnpj', identifier: '', country: 'Brasil', complement: '' } },
-        responsiblePerson: { id: '', name: '', document: { type: 'cpf', identifier: '', country: 'Brasil', complement: '' } },
+        organizationPerson: { id: '', name: '', document: { type: 'cnpj', identifier: '', country: 'BR', complement: '' } },
+        responsiblePerson: { id: '', name: '', document: { type: 'cpf', identifier: '', country: 'BR', complement: '' } },
         responsibleEmail: '',
         address: {
             street: '',
@@ -34,12 +36,30 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
 
     const [organization, setOrganization] = useState<IOrganization>(emptyOrganization);
     const [selectedOrgProj, setSelectedOrgProj] = useState<any>(null);
+    const [selectedRespProj, setSelectedRespProj] = useState<any>(null);
     const [isManualEntry, setIsManualEntry] = useState(false);
+    const [isRespManualEntry, setIsRespManualEntry] = useState(false);
+    const [emailError, setEmailError] = useState<string | null>(null);
     const toast = useRef<Toast>(null);
+
+    const validateEmail = (email: string) => {
+        if (!email) {
+            setEmailError(null);
+            return true;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const isValid = emailRegex.test(email);
+        setEmailError(isValid ? null : 'E-mail inválido');
+        return isValid;
+    };
 
     const onInputChange = (e: React.ChangeEvent<HTMLInputElement>, path: string) => {
         const val = e.target.value;
         const keys = path.split('.');
+        
+        if (path === 'responsibleEmail') {
+            validateEmail(val);
+        }
         
         setOrganization(prev => {
             const newState = { ...prev };
@@ -55,36 +75,102 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
     const handleOrgSelect = (e: any) => {
         const selected = e.value;
         setSelectedOrgProj(selected);
+        setEmailError(null);
         if (selected) {
             setOrganization(prev => ({
                 ...prev,
                 organizationPerson: {
                     ...prev.organizationPerson,
+                    id: selected.personId || '',
                     name: selected.personName,
                     document: { 
                         ...prev.organizationPerson.document, 
                         identifier: selected.documentNumber 
                     }
-                },
-                address: {
-                    ...prev.address,
-                    city: selected.city
                 }
             }));
             setIsManualEntry(false);
         } else {
             // Se limpar a seleção
-            setOrganization(emptyOrganization);
+            setOrganization(prev => ({
+                ...prev,
+                organizationPerson: emptyOrganization.organizationPerson
+            }));
         }
     };
 
+    const handleRespSelect = (e: any) => {
+        const selected = e.value;
+        setSelectedRespProj(selected);
+        setEmailError(null);
+        if (selected) {
+            setOrganization(prev => ({
+                ...prev,
+                responsiblePerson: {
+                    ...prev.responsiblePerson,
+                    id: selected.personId || '',
+                    name: selected.personName,
+                    document: { 
+                        ...prev.responsiblePerson.document, 
+                        identifier: selected.documentNumber 
+                    }
+                }
+            }));
+            setIsRespManualEntry(false);
+        } else {
+            setOrganization(prev => ({
+                ...prev,
+                responsiblePerson: emptyOrganization.responsiblePerson
+            }));
+        }
+    };
+
+    const handleZipCodeChange = (zipData: IZipCodeResponse) => {
+        setOrganization(prev => ({
+            ...prev,
+            address: {
+                ...prev.address,
+                zipCode: zipData.zipCode,
+                street: zipData.street,
+                neighborhood: zipData.neighborhood,
+                city: zipData.city,
+                stateCode: zipData.stateCode
+            }
+        }));
+    };
+
     const handleAddNew = () => {
-        setOrganization(emptyOrganization);
+        setOrganization(prev => ({
+            ...prev,
+            organizationPerson: emptyOrganization.organizationPerson,
+            address: { ...prev.address, city: '' }
+        }));
         setSelectedOrgProj(null);
         setIsManualEntry(true);
+        setEmailError(null);
+    };
+
+    const handleRespAddNew = () => {
+        setOrganization(prev => ({
+            ...prev,
+            responsiblePerson: emptyOrganization.responsiblePerson
+        }));
+        setSelectedRespProj(null);
+        setIsRespManualEntry(true);
+        setEmailError(null);
     };
 
     const handleSave = async () => {
+        if (organization.responsibleEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(organization.responsibleEmail)) {
+            toast.current?.show({
+                severity: 'warn',
+                summary: 'Atenção',
+                detail: 'Por favor, insira um e-mail válido para o responsável.',
+                life: 3000
+            });
+            return;
+        }
+
         try {
             const dataToSave = { ...organization };
             const savedOrg = await OrganizationService.saveOrganization(dataToSave);
@@ -94,6 +180,10 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
             onHide(); // Fecha a barra lateral após sucesso
             setOrganization(emptyOrganization); // Reseta o formulário
             setSelectedOrgProj(null);
+            setSelectedRespProj(null);
+            setIsManualEntry(false);
+            setIsRespManualEntry(false);
+            setEmailError(null);
         } catch (error: any) {
             console.error("Erro ao salvar organização:", error);
             toast.current?.show({
@@ -150,7 +240,11 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                                     onClick={() => {
                                         setIsManualEntry(false);
                                         setSelectedOrgProj(null);
-                                        setOrganization(emptyOrganization);
+                                        setOrganization(prev => ({
+                                            ...prev,
+                                            organizationPerson: emptyOrganization.organizationPerson,
+                                            address: { ...prev.address, city: '' }
+                                        }));
                                     }} 
                                     tooltip="Voltar"
                                     tooltipOptions={{ className: 'text-xs', position: 'top', mouseTrack: true, mouseTrackTop: 15 }}
@@ -176,15 +270,63 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                     <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1">Responsável</h6>
                     <div className="field mb-2">
                         <label htmlFor="respName" className="text-xs font-bold mb-1 block">Nome do Responsável</label>
-                        <InputText id="respName" className="p-inputtext-sm" value={organization.responsiblePerson.name} onChange={(e) => onInputChange(e, 'responsiblePerson.name')} />
-                    </div>
-                    <div className="field mb-2">
-                        <label htmlFor="respEmail" className="text-xs font-bold mb-1 block">E-mail</label>
-                        <InputText id="respEmail" className="p-inputtext-sm" value={organization.responsibleEmail} onChange={(e) => onInputChange(e, 'responsibleEmail')} />
+                        {!isRespManualEntry ? (
+                            <OrganizationSelector 
+                                value={selectedRespProj}
+                                onChange={handleRespSelect}
+                                onAddNew={handleRespAddNew}
+                                documentType="cpf"
+                                placeholder="Selecione um Responsável"
+                            />
+                        ) : (
+                            <div className="flex gap-2">
+                                <InputText 
+                                    id="respName" 
+                                    className="p-inputtext-sm flex-1" 
+                                    value={organization.responsiblePerson.name} 
+                                    onChange={(e) => onInputChange(e, 'responsiblePerson.name')} 
+                                    placeholder="Digite o nome do responsável"
+                                    autoFocus
+                                />
+                                <Button 
+                                    icon="pi pi-search" 
+                                    className="p-button-sm p-button-text" 
+                                    onClick={() => {
+                                        setIsRespManualEntry(false);
+                                        setSelectedRespProj(null);
+                                        setOrganization(prev => ({
+                                            ...prev,
+                                            responsiblePerson: emptyOrganization.responsiblePerson
+                                        }));
+                                    }} 
+                                    tooltip="Voltar"
+                                    tooltipOptions={{ className: 'text-xs', position: 'top', mouseTrack: true, mouseTrackTop: 15 }}
+                                />
+                            </div>
+                        )}
                     </div>
                     <div className="field mb-2">
                         <label htmlFor="cpf" className="text-xs font-bold mb-1 block">CPF</label>
-                        <InputText id="cpf" className="p-inputtext-sm" value={organization.responsiblePerson.document.identifier} onChange={(e) => onInputChange(e, 'responsiblePerson.document.identifier')} />
+                        <InputMask 
+                            id="cpf" 
+                            className="p-inputtext-sm" 
+                            mask="999.999.999-99"
+                            value={organization.responsiblePerson.document.identifier} 
+                            placeholder="000.000.000-00"
+                            onChange={(e) => onInputChange(e as any, 'responsiblePerson.document.identifier')} 
+                            disabled={!isRespManualEntry && organization.responsiblePerson.name !== ''}
+                        />
+                    </div>
+                    <div className="field mb-2">
+                        <label htmlFor="respEmail" className="text-xs font-bold mb-1 block">E-mail</label>
+                        <InputText 
+                            id="respEmail"
+                            keyfilter="email"
+                            className={`p-inputtext-sm ${emailError ? 'p-invalid' : ''}`} 
+                            value={organization.responsibleEmail} 
+                            onChange={(e) => onInputChange(e, 'responsibleEmail')} 
+                        />
+                        {emailError && <small className="p-error block mt-1" style={{ fontSize: '0.7rem' }}>{emailError}</small>}
                     </div>
                 </div>
 
@@ -205,7 +347,10 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                         </div>
                         <div className="field col-5 p-1 mb-1">
                             <label htmlFor="zipCode" className="text-xs font-bold mb-1 block">CEP</label>
-                            <InputText id="zipCode" className="p-inputtext-sm" value={organization.address.zipCode} onChange={(e) => onInputChange(e, 'address.zipCode')} />
+                            <ZipCodeSelector 
+                                value={organization.address.zipCode} 
+                                onChange={handleZipCodeChange}
+                            />
                         </div>
                         <div className="field col-9 p-1 mb-1">
                             <label htmlFor="city" className="text-xs font-bold mb-1 block">Cidade</label>

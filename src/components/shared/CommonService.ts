@@ -24,7 +24,14 @@ export class CommonService {
             'address.country.required': 'O país é obrigatório.',
             'address.country.invalid': 'O país é inválido.',
             'address.zipcode.required': 'O CEP é obrigatório.',
-            'address.zipcode.invalid': 'O CEP é inválido.'
+            'address.zipcode.invalid': 'O CEP é inválido.',
+            'person.name.not.null': 'O nome da pessoa é obrigatório.',
+            'person.duplicated': 'Esta pessoa já está cadastrada.',
+            'person.name.not.blank': 'O nome da pessoa não pode estar em branco.',
+            'person.document.not.null': 'O documento da pessoa é obrigatório.',
+            'person.id.not.found': 'Pessoa não encontrada.',
+            'person.document.invalid': 'O documento informado é inválido.',
+            'person.cannot.remove.because.organization': 'Não é possível remover esta pessoa pois ela está vinculada a uma organização.'
         };
 
         return errorMessages[errorCode] || defaultMessage;

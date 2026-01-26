@@ -17,7 +17,7 @@ const OrganizationList: React.FC = () => {
     const [displayDetails, setDisplayDetails] = useState<boolean>(false);
     const [displayManager, setDisplayManager] = useState<boolean>(false);
 
-    const ROWS_PER_PAGE = 2;
+    const ROWS_PER_PAGE = 5;
 
     // Carrega a primeira página ao iniciar
     useEffect(() => {

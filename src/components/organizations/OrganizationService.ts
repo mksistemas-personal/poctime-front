@@ -99,7 +99,7 @@ export class OrganizationService {
 
   static async saveOrganization(organization: IOrganization): Promise<IOrganization> {
     const organizationRequest: IOrganizationRequest = {
-      id: null,
+      id: organization.id || null,
       person: organization.organizationPerson,
       address: organization.address,
       responsiblePerson: organization.responsiblePerson,
