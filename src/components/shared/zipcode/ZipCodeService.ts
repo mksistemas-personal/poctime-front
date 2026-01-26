@@ -1,16 +1,16 @@
-import { AuthService } from "./auth/AuthServiceKeycloak";
-import { CommonService } from "./CommonService";
+import { AuthService } from "../auth/AuthServiceKeycloak";
+import { CommonService } from "../CommonService";
 
 export interface IZipCodeResponse {
     zipCode: string;
     street: string;
     neighborhood: string;
     city: string;
-    stateCode: string;
+    state: string;
 }
 
 export class ZipCodeService {
-    private static readonly API_URL = 'http://localhost:8181/api/zipcode';
+    private static readonly API_URL = 'http://localhost:8181/api/zipCodes';
 
     static async getZipCode(zipCode: string): Promise<IZipCodeResponse> {
         const cleanZipCode = zipCode.replace(/\D/g, '');

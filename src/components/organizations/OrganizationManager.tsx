@@ -6,8 +6,8 @@ import { Toast } from 'primereact/toast';
 import { OrganizationService, IOrganization } from './OrganizationService';
 import OrganizationSelector from './OrganizationSelector';
 import {InputMask} from "primereact/inputmask";
-import ZipCodeSelector from '../shared/ZipCodeSelector';
-import { IZipCodeResponse } from '../shared/ZipCodeService';
+import { IZipCodeResponse, ZipCodeService } from '../shared/zipcode/ZipCodeService';
+import FederalStateSelector from '../shared/states/FederalStateSelector';
 
 interface OrganizationManagerProps {
     visible: boolean;
@@ -125,18 +125,50 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
         }
     };
 
-    const handleZipCodeChange = (zipData: IZipCodeResponse) => {
-        setOrganization(prev => ({
-            ...prev,
-            address: {
-                ...prev.address,
-                zipCode: zipData.zipCode,
-                street: zipData.street,
-                neighborhood: zipData.neighborhood,
-                city: zipData.city,
-                stateCode: zipData.stateCode
+    const handleZipCodeChange = async (zipData: IZipCodeResponse | string) => {
+        if (typeof zipData === 'string') {
+            const cleanZip = zipData.replace(/\D/g, '');
+            
+            setOrganization(prev => ({
+                ...prev,
+                address: {
+                    ...prev.address,
+                    zipCode: zipData
+                }
+            }));
+
+            if (cleanZip.length === 8) {
+                try {
+                    const response = await ZipCodeService.getZipCode(cleanZip);
+                    if (response) {
+                        setOrganization(prev => ({
+                            ...prev,
+                            address: {
+                                ...prev.address,
+                                street: prev.address.street || response.street,
+                                neighborhood: prev.address.neighborhood || response.neighborhood,
+                                city: prev.address.city || response.city,
+                                stateCode: prev.address.stateCode || response.state
+                            }
+                        }));
+                    }
+                } catch (error) {
+                    console.error("Erro ao buscar CEP:", error);
+                }
             }
-        }));
+        } else {
+            setOrganization(prev => ({
+                ...prev,
+                address: {
+                    ...prev.address,
+                    zipCode: zipData.zipCode,
+                    street: prev.address.street || zipData.street,
+                    neighborhood: prev.address.neighborhood || zipData.neighborhood,
+                    city: prev.address.city || zipData.city,
+                    stateCode: prev.address.stateCode || zipData.state
+                }
+            }));
+        }
     };
 
     const handleAddNew = () => {
@@ -195,9 +227,19 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
         }
     };
 
+    const handleCancel = () => {
+        setOrganization(emptyOrganization);
+        setSelectedOrgProj(null);
+        setSelectedRespProj(null);
+        setIsManualEntry(false);
+        setIsRespManualEntry(false);
+        setEmailError(null);
+        onHide();
+    };
+
     const footer = (
         <div className="flex justify-content-end gap-2 mt-4">
-            <Button label="Cancelar" icon="pi pi-times" outlined onClick={onHide} severity="danger" rounded size="small" />
+            <Button label="Cancelar" icon="pi pi-times" outlined onClick={handleCancel} severity="danger" rounded size="small" />
             <Button label="Salvar" icon="pi pi-check" onClick={handleSave} severity="success" rounded size="small"/>
         </div>
     );
@@ -347,9 +389,13 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                         </div>
                         <div className="field col-5 p-1 mb-1">
                             <label htmlFor="zipCode" className="text-xs font-bold mb-1 block">CEP</label>
-                            <ZipCodeSelector 
+                            <InputMask 
+                                id="zipCode"
+                                mask="99999-999"
+                                className="w-full p-inputtext-sm"
                                 value={organization.address.zipCode} 
-                                onChange={handleZipCodeChange}
+                                onChange={(e) => handleZipCodeChange(e.value || '')}
+                                placeholder="00000-000"
                             />
                         </div>
                         <div className="field col-9 p-1 mb-1">
@@ -358,7 +404,19 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                         </div>
                         <div className="field col-3 p-1 mb-1">
                             <label htmlFor="stateCode" className="text-xs font-bold mb-1 block">UF</label>
-                            <InputText id="stateCode" className="p-inputtext-sm" value={organization.address.stateCode} onChange={(e) => onInputChange(e, 'address.stateCode')} />
+                            <FederalStateSelector 
+                                value={organization.address.stateCode} 
+                                onChange={(val) => {
+                                    setOrganization(prev => ({
+                                        ...prev,
+                                        address: {
+                                            ...prev.address,
+                                            stateCode: val
+                                        }
+                                    }));
+                                }}
+                                className="w-full p-inputtext-sm"
+                            />
                         </div>
                     </div>
                 </div>
