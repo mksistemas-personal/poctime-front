@@ -7,6 +7,7 @@ import { OrganizationService, IOrganization } from './OrganizationService';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
 import OrganizationDetails from './OrganizationDetails';
 import OrganizationManager from './OrganizationManager';
+import OrganizationUpdater from './OrganizationUpdater';
 
 const OrganizationList: React.FC = () => {
     const [organizations, setOrganizations] = useState<IOrganization[]>([]);
@@ -16,6 +17,8 @@ const OrganizationList: React.FC = () => {
     const [selectedOrganization, setSelectedOrganization] = useState<IOrganization | null>(null);
     const [displayDetails, setDisplayDetails] = useState<boolean>(false);
     const [displayManager, setDisplayManager] = useState<boolean>(false);
+    const [displayUpdater, setDisplayUpdater] = useState<boolean>(false);
+    const [organizationToEdit, setOrganizationToEdit] = useState<IOrganization | null>(null);
 
     const ROWS_PER_PAGE = 5;
 
@@ -71,16 +74,30 @@ const OrganizationList: React.FC = () => {
 
     const actionBodyTemplate = (rowData: IOrganization) => {
         return (
-            <Button
-                icon="pi pi-search"
-                rounded
-                text
-                severity="info"
-                onClick={() => {
-                    setSelectedOrganization(rowData);
-                    setDisplayDetails(true);
-                }}
-            />
+            <div className="flex gap-2">
+                <Button
+                    icon="pi pi-search"
+                    rounded
+                    text
+                    severity="info"
+                    onClick={() => {
+                        setSelectedOrganization(rowData);
+                        setDisplayDetails(true);
+                    }}
+                    tooltip="Ver detalhes"
+                />
+                <Button
+                    icon="pi pi-pencil"
+                    rounded
+                    text
+                    severity="warning"
+                    onClick={() => {
+                        setOrganizationToEdit(rowData);
+                        setDisplayUpdater(true);
+                    }}
+                    tooltip="Editar organização"
+                />
+            </div>
         );
     };
 
@@ -107,7 +124,7 @@ const OrganizationList: React.FC = () => {
                     value={organizations} 
                     selectionMode="single"
                     selection={selectedOrganization}
-                    onSelectionChange={(e) => setSelectedOrganization(e.value.selection)}
+                    onSelectionChange={(e) => setSelectedOrganization(e.value.organization)}
                     dataKey="id"
                     loading={loading}
                     footer={footer}
@@ -131,7 +148,10 @@ const OrganizationList: React.FC = () => {
             <OrganizationDetails
                 visible={displayDetails}
                 organization={selectedOrganization}
-                onHide={() => setDisplayDetails(false)}
+                onHide={() => {
+                    setDisplayDetails(false);
+                    setSelectedOrganization(null);
+                }}
             />
 
             <OrganizationManager
@@ -141,6 +161,18 @@ const OrganizationList: React.FC = () => {
                         loadOrganizations(0);
                     }}
                 />
+
+            <OrganizationUpdater
+                visible={displayUpdater}
+                organization={organizationToEdit}
+                onHide={() => {
+                    setDisplayUpdater(false);
+                    setOrganizationToEdit(null);
+                }}
+                onSave={(updatedOrg) => {
+                    loadOrganizations(0);
+                }}
+            />
 
             </div>
     );
