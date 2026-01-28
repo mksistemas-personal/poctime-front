@@ -55,22 +55,58 @@ export class OrganizationService {
   private static readonly API_ALL_WITH_CITY = `${OrganizationService.API_URL}/projection/all-with-city`;
 
 
-  static async getOrganizations(page: number = 0, size: number = 10): Promise<ISlice<IOrganization>> {
+  static async getOrganizations(page: number = 0, size: number = 10, filters: any = {}): Promise<ISlice<IOrganization>> {
     try {
       const tokenData = await AuthService.getAccessToken();
-      const url: string = `${this.API_URL}?page=${page}&size=${size}`;
+      
+      const filterParams: any = {};
+      Object.keys(filters).forEach(key => {
+        if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
+          filterParams[key] = `${filters[key]}`;
+        }
+      });
+
+      const params = new URLSearchParams({
+        page: page.toString(),
+        size: size.toString(),
+        ...filterParams
+      });
+
+      const url: string = `${this.API_URL}?${params.toString()}`;
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${tokenData.access_token}`,
           'Content-Type': 'application/json'
         }
       });
+      if (response.status === 204) {
+        return {
+          content: [],
+          pageable: {
+            pageNumber: page,
+            pageSize: size,
+            sort: { sorted: false, unsorted: true, empty: true },
+            offset: page * size,
+            paged: true,
+            unpaged: false
+          },
+          size: size,
+          number: page,
+          sort: { sorted: false, unsorted: true, empty: true },
+          numberOfElements: 0,
+          first: page === 0,
+          last: true,
+          empty: true
+        };
+      }
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.log(errorData);
         throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao buscar organizações'));
       }
       return await response.json();
     } catch (error) {
+      console.log(error);
       console.error("Erro no OrganizationService:", error);
       throw error;
     }
@@ -86,6 +122,26 @@ export class OrganizationService {
           'Content-Type': 'application/json'
         }
       });
+      if (response.status === 204) {
+        return {
+          content: [],
+          pageable: {
+            pageNumber: page,
+            pageSize: size,
+            sort: { sorted: false, unsorted: true, empty: true },
+            offset: page * size,
+            paged: true,
+            unpaged: false
+          },
+          size: size,
+          number: page,
+          sort: { sorted: false, unsorted: true, empty: true },
+          numberOfElements: 0,
+          first: page === 0,
+          last: true,
+          empty: true
+        };
+      }
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao buscar organizações'));
@@ -122,9 +178,29 @@ export class OrganizationService {
         throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao salvar organização'));
       }
       return await response.json();
-
     } catch (error) {
       console.log("Erro ao salvar no OrganizationService:", error);
+      throw error;
+    }
+  }
+
+  static async deleteOrganization(id: string): Promise<void> {
+    try {
+      const tokenData = await AuthService.getAccessToken();
+      const response = await fetch(`${this.API_URL}/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao excluir organização'));
+      }
+    } catch (error) {
+      console.error("Erro no OrganizationService ao excluir:", error);
       throw error;
     }
   }
