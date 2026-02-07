@@ -8,7 +8,8 @@ import { Accordion, AccordionTab } from 'primereact/accordion';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import { Toast } from 'primereact/toast';
 import FederalStateSelector from '../shared/states/FederalStateSelector';
-import { OrganizationService, IOrganization } from './OrganizationService';
+import { OrganizationService  } from './OrganizationService';
+import { IOrganization } from './OrganizationStructures';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
 import OrganizationDetails from './OrganizationDetails';
 import OrganizationManager from './OrganizationManager';
@@ -36,11 +37,6 @@ const OrganizationList: React.FC = () => {
 
     const ROWS_PER_PAGE = 5;
 
-    // Carrega a primeira página ao iniciar
-    useEffect(() => {
-        loadOrganizations(0);
-    }, []);
-
     const loadOrganizations = async (pageNumber: number, currentFilters: any = filters) => {
         if (loading && pageNumber !== 0) return;
         if (isLastPage && pageNumber !== 0) return;
@@ -48,7 +44,7 @@ const OrganizationList: React.FC = () => {
         try {
             setLoading(true);
             const data = await OrganizationService.getOrganizations(pageNumber, ROWS_PER_PAGE, currentFilters);
-            
+
             // Garantir que estamos pegando o objeto de organização, caso venha envolvido
             const content = data.content.map((item: any) => {
                 if (item.organization) {
@@ -67,6 +63,12 @@ const OrganizationList: React.FC = () => {
             setLoading(false);
         }
     };
+
+    // Carrega a primeira página ao iniciar
+    useEffect(() => {
+        loadOrganizations(0);
+    }, []);
+
 
     const onFilterChange = (e: any, field: string) => {
         const value = e.target.value;

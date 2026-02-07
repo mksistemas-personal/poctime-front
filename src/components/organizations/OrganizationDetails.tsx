@@ -1,7 +1,6 @@
 import React from 'react';
 import { Sidebar } from 'primereact/sidebar';
-import { IOrganization } from './OrganizationService';
-import { Divider } from 'primereact/divider';
+import { IOrganization } from './OrganizationStructures';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
 
 interface OrganizationDetailsProps {

@@ -28,7 +28,7 @@ export class OrganizationService {
 
       const url: string = `${this.API_URL}?${params.toString()}`;
 
-      const response = await CommonApiService.fetchData(url);
+      const response = await CommonApiService.fetchGetData(url);
       if (response.status === 204)
         return CommonStructures.getEmptyHttpResponse(page, size);
 
@@ -37,6 +37,7 @@ export class OrganizationService {
         console.log(errorData);
         throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao buscar organizações'));
       }
+
       return await response.json();
     } catch (error) {
       console.log(error);
@@ -47,14 +48,10 @@ export class OrganizationService {
 
   static async getOrganizationsWithCity(page: number = 0, size: number = 10, documentType: string): Promise<ISlice<IOrganizationWithCityProjection>> {
     try {
-      const tokenData = await AuthService.getAccessToken();
       const url: string = `${this.API_ALL_WITH_CITY}?page=${page}&size=${size}&documentType=${documentType}`;
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+
+      const response = await CommonApiService.fetchGetData(url);
+
       if (response.status === 204)
         return CommonStructures.getEmptyHttpResponse(page, size);
 
@@ -62,6 +59,7 @@ export class OrganizationService {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao buscar organizações'));
       }
+
       return await response.json();
     } catch (error) {
       console.error("Erro no OrganizationService:", error);
@@ -78,15 +76,7 @@ export class OrganizationService {
       responsibleEmail: organization.responsibleEmail,
     };
     try {
-      const tokenData = await AuthService.getAccessToken();
-      const response = await fetch(this.API_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(organizationRequest)
-      });
+      const response = await CommonApiService.fetchPostData(this.API_URL, organizationRequest);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
-import { OrganizationService, IOrganizationWithCityProjection } from './OrganizationService';
+import { OrganizationService  } from './OrganizationService';
+import { IOrganizationWithCityProjection } from './OrganizationStructures';
 import DocumentDisplay, { DocumentType } from '../shared/document/DocumentDisplay';
 
 interface OrganizationSelectorProps {
@@ -22,10 +23,7 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
     const [organizations, setOrganizations] = useState<IOrganizationWithCityProjection[]>([]);
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        loadData();
-    }, [documentType]);
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const loadData = async () => {
         setLoading(true);
         try {
@@ -37,6 +35,11 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        loadData();
+    }, [documentType]);
+
 
     // Template para os itens na lista suspensa
     const itemTemplate = (option: IOrganizationWithCityProjection) => {
