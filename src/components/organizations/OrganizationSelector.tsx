@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dropdown, DropdownChangeEvent } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
 import { OrganizationService  } from './OrganizationService';
@@ -24,7 +24,7 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
     const [loading, setLoading] = useState(false);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const loadData = async () => {
+    const loadData= useCallback(async () => {
         setLoading(true);
         try {
             const response = await OrganizationService.getOrganizationsWithCity(0, 9999, documentType);
@@ -34,11 +34,11 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
         } finally {
             setLoading(false);
         }
-    };
+    }, [documentType]);
 
     useEffect(() => {
         loadData();
-    }, [documentType]);
+    }, [loadData]);
 
 
     // Template para os itens na lista suspensa
