@@ -1,54 +1,9 @@
 import {AuthService} from "../shared/auth/AuthServiceKeycloak";
 import {ISlice} from "../shared/ISlice";
 import {CommonService} from "../shared/CommonService";
-
-export interface IAddress {
-  street: string;
-  number: string;
-  complement: string;
-  neighborhood: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-  stateCode: string;
-}
-
-export interface IDocument{
-  type: string;
-  identifier: string;
-  country: string;
-  complement: string;
-}
-
-export interface IPerson {
-  id: string;
-  name: string;
-  document: IDocument;
-}
-export interface IOrganization {
-  id: string;
-  organizationPerson: IPerson
-  responsiblePerson: IPerson;
-  responsibleEmail: string;
-  address: IAddress;
-}
-export interface IOrganizationWithCityProjection {
-  id: string;
-  personId: string;
-  personName: string;
-  documentType: string;
-  documentNumber: string;
-  city: string;
-}
-
-interface IOrganizationRequest {
-  id: string | null;
-  person: IPerson;
-  address: IAddress;
-  responsiblePerson: IPerson;
-  responsibleEmail: string;
-}
+import {CommonStructures} from "../shared/base/CommonStructures";
+import {CommonApiService} from "../shared/base/CommonApiService";
+import {IOrganization, IOrganizationWithCityProjection, IOrganizationRequest} from "./OrganizationStructures";
 
 export class OrganizationService {
   private static readonly API_URL = 'http://localhost:8181/api/organization'; // Ajuste a URL base conforme necessário
@@ -57,8 +12,7 @@ export class OrganizationService {
 
   static async getOrganizations(page: number = 0, size: number = 10, filters: any = {}): Promise<ISlice<IOrganization>> {
     try {
-      const tokenData = await AuthService.getAccessToken();
-      
+
       const filterParams: any = {};
       Object.keys(filters).forEach(key => {
         if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
@@ -73,37 +27,17 @@ export class OrganizationService {
       });
 
       const url: string = `${this.API_URL}?${params.toString()}`;
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (response.status === 204) {
-        return {
-          content: [],
-          pageable: {
-            pageNumber: page,
-            pageSize: size,
-            sort: { sorted: false, unsorted: true, empty: true },
-            offset: page * size,
-            paged: true,
-            unpaged: false
-          },
-          size: size,
-          number: page,
-          sort: { sorted: false, unsorted: true, empty: true },
-          numberOfElements: 0,
-          first: page === 0,
-          last: true,
-          empty: true
-        };
-      }
+
+      const response = await CommonApiService.fetchGetData(url);
+      if (response.status === 204)
+        return CommonStructures.getEmptySliceResponse(page, size);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         console.log(errorData);
         throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao buscar organizações'));
       }
+
       return await response.json();
     } catch (error) {
       console.log(error);
@@ -114,38 +48,18 @@ export class OrganizationService {
 
   static async getOrganizationsWithCity(page: number = 0, size: number = 10, documentType: string): Promise<ISlice<IOrganizationWithCityProjection>> {
     try {
-      const tokenData = await AuthService.getAccessToken();
       const url: string = `${this.API_ALL_WITH_CITY}?page=${page}&size=${size}&documentType=${documentType}`;
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (response.status === 204) {
-        return {
-          content: [],
-          pageable: {
-            pageNumber: page,
-            pageSize: size,
-            sort: { sorted: false, unsorted: true, empty: true },
-            offset: page * size,
-            paged: true,
-            unpaged: false
-          },
-          size: size,
-          number: page,
-          sort: { sorted: false, unsorted: true, empty: true },
-          numberOfElements: 0,
-          first: page === 0,
-          last: true,
-          empty: true
-        };
-      }
+
+      const response = await CommonApiService.fetchGetData(url);
+
+      if (response.status === 204)
+        return CommonStructures.getEmptySliceResponse(page, size);
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao buscar organizações'));
       }
+
       return await response.json();
     } catch (error) {
       console.error("Erro no OrganizationService:", error);
@@ -162,15 +76,7 @@ export class OrganizationService {
       responsibleEmail: organization.responsibleEmail,
     };
     try {
-      const tokenData = await AuthService.getAccessToken();
-      const response = await fetch(this.API_URL, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(organizationRequest)
-      });
+      const response = await CommonApiService.fetchPostData(this.API_URL, organizationRequest);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
