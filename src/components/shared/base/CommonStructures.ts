@@ -1,5 +1,5 @@
 export class CommonStructures {
-    static async getEmptyHttpResponse(page: number = 0, size: number = 10) {
+    static async getEmptySliceResponse(page: number = 0, size: number = 10) {
         return {
             content: [],
             pageable: {

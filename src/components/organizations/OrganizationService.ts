@@ -30,7 +30,7 @@ export class OrganizationService {
 
       const response = await CommonApiService.fetchGetData(url);
       if (response.status === 204)
-        return CommonStructures.getEmptyHttpResponse(page, size);
+        return CommonStructures.getEmptySliceResponse(page, size);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -53,7 +53,7 @@ export class OrganizationService {
       const response = await CommonApiService.fetchGetData(url);
 
       if (response.status === 204)
-        return CommonStructures.getEmptyHttpResponse(page, size);
+        return CommonStructures.getEmptySliceResponse(page, size);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

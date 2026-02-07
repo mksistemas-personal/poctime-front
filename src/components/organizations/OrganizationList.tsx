@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Panel } from 'primereact/panel';
@@ -34,13 +34,21 @@ const OrganizationList: React.FC = () => {
         city: '',
         stateCode: ''
     });
+    const loadingRef = React.useRef(loading);
+    const isLastPageRef = React.useRef(isLastPage);
+
+    useEffect(() => {
+        loadingRef.current = loading;
+    }, [loading]);
+
+    useEffect(() => {
+        isLastPageRef.current = isLastPage;
+    }, [isLastPage]);
 
     const ROWS_PER_PAGE = 5;
 
-    const loadOrganizations = async (pageNumber: number, currentFilters: any = filters) => {
-        if (loading && pageNumber !== 0) return;
-        if (isLastPage && pageNumber !== 0) return;
-
+    const loadOrganizations = useCallback(async (pageNumber: number, currentFilters: any = filters) => {
+        if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
             const data = await OrganizationService.getOrganizations(pageNumber, ROWS_PER_PAGE, currentFilters);
@@ -62,12 +70,12 @@ const OrganizationList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filters]);
 
     // Carrega a primeira página ao iniciar
     useEffect(() => {
         loadOrganizations(0);
-    }, []);
+    }, [loadOrganizations]);
 
 
     const onFilterChange = (e: any, field: string) => {
