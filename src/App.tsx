@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import './index.css';
 import './App.css';
 
@@ -6,15 +6,14 @@ import './App.css';
 //import "primereact/resources/themes/lara-light-cyan/theme.css"; // Tema
 // import "primereact/resources/themes/md-dark-indigo/theme.css";
 import "primereact/resources/themes/saga-orange/theme.css";
-import "primereact/resources/primereact.min.css";               // Core CSS
+import "primereact/resources/primereact.min.css"; // Core CSS
 import "primeicons/primeicons.css";
 import "primeflex/primeflex.css";
 
 import MainLayout from './components/main/MainLayout';
-import UserList from './components/users/UserList';
-import GroupList from './components/users/GroupList';
 import AdminDashboard from './components/dashboard/AdminDashboard';
-import OrganizationList from './components/organizations/OrganizationList'; // Import do novo componente
+import OrganizationList from './components/organizations/OrganizationList';
+import EconomicGroupList from './components/economic-group/EconomicGroupList';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<string>('dashboard');
@@ -24,11 +23,9 @@ function App() {
       case 'dashboard':
         return <AdminDashboard />;
       case 'organizations':
-        return <OrganizationList />; // Nova rota para organizações
-      case 'users':
-        return <UserList />;
-      case 'groups':
-        return <GroupList />;
+        return <OrganizationList />;
+      case 'economic-groups':
+        return <EconomicGroupList />;
       default:
         return <AdminDashboard />;
     }

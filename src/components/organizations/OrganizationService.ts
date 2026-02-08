@@ -3,7 +3,7 @@ import {ISlice} from "../shared/ISlice";
 import {CommonService} from "../shared/CommonService";
 import {CommonStructures} from "../shared/base/CommonStructures";
 import {CommonApiService} from "../shared/base/CommonApiService";
-import {IOrganization, IOrganizationWithCityProjection, IOrganizationRequest} from "./OrganizationStructures";
+import {IOrganization, IOrganizationRequest, IOrganizationWithCityProjection} from "./OrganizationStructures";
 
 export class OrganizationService {
   private static readonly API_URL = 'http://localhost:8181/api/organization'; // Ajuste a URL base conforme necessário
@@ -13,12 +13,7 @@ export class OrganizationService {
   static async getOrganizations(page: number = 0, size: number = 10, filters: any = {}): Promise<ISlice<IOrganization>> {
     try {
 
-      const filterParams: any = {};
-      Object.keys(filters).forEach(key => {
-        if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
-          filterParams[key] = `${filters[key]}`;
-        }
-      });
+      const filterParams = CommonApiService.mountFilter(filters);
 
       const params = new URLSearchParams({
         page: page.toString(),

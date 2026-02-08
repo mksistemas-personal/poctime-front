@@ -31,6 +31,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate}) => {
             label: 'Organizações',
             icon: 'pi pi-building',
             command: () => onNavigate('organizations')
+        },
+        {
+            label: 'Grupos economicos',
+            icon: 'pi pi-sitemap',
+            command: () => onNavigate('economic-groups')
         }
     ];
 

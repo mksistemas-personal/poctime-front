@@ -23,4 +23,14 @@ export class CommonApiService {
             body: JSON.stringify(bodyData)
         });
     }
+
+    static mountFilter(filters: any) {
+        const filterParams: any = {};
+        Object.keys(filters).forEach(key => {
+            if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
+                filterParams[key] = `${filters[key]}`;
+            }
+        });
+        return filterParams;
+    }
 }
