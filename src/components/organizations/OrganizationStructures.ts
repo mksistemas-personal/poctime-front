@@ -45,3 +45,9 @@ export interface IOrganizationRequest {
     responsiblePerson: IPerson;
     responsibleEmail: string;
 }
+
+export interface IOrganizationView {
+    id: string;
+    name: string;
+    document: IDocument;
+}

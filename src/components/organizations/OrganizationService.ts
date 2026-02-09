@@ -3,7 +3,12 @@ import {ISlice} from "../shared/ISlice";
 import {CommonService} from "../shared/CommonService";
 import {CommonStructures} from "../shared/base/CommonStructures";
 import {CommonApiService} from "../shared/base/CommonApiService";
-import {IOrganization, IOrganizationRequest, IOrganizationWithCityProjection} from "./OrganizationStructures";
+import {
+  IOrganization,
+  IOrganizationRequest,
+  IOrganizationView,
+  IOrganizationWithCityProjection
+} from "./OrganizationStructures";
 
 export class OrganizationService {
   private static readonly API_URL = 'http://localhost:8181/api/organization'; // Ajuste a URL base conforme necessário
@@ -57,6 +62,30 @@ export class OrganizationService {
 
       return await response.json();
     } catch (error) {
+      console.error("Erro no OrganizationService:", error);
+      throw error;
+    }
+  }
+
+  static async getOrganizationsFromList(ids: string[] = []): Promise<ISlice<IOrganizationView>> {
+    try {
+
+      const idsParam = ids.join(',');
+      const url: string = `${OrganizationService.API_URL}/projection/from-list?ids=${idsParam.toString()}`;
+
+      const response = await CommonApiService.fetchGetData(url);
+      if (response.status === 204)
+        return CommonStructures.getEmptySliceResponse(0, 0);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.log(errorData);
+        throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao buscar organizações listadas'));
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.log(error);
       console.error("Erro no OrganizationService:", error);
       throw error;
     }

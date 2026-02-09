@@ -7,6 +7,9 @@ import {Accordion, AccordionTab} from "primereact/accordion";
 import {InputText} from "primereact/inputtext";
 import {IEconomicGroup} from "./EconomicGroupStructures";
 import {EconomicGroupService} from "./EconomicGroupService";
+import {Column} from "primereact/column";
+import {DataTable} from "primereact/datatable";
+import EconomicGroupDetails from "./EconomicGroupDetails";
 
 
 const EconomicGroupList: React.FC = () => {
@@ -14,6 +17,8 @@ const EconomicGroupList: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [page, setPage] = useState<number>(0);
     const [isLastPage, setIsLastPage] = useState<boolean>(false);
+    const [selectedEconomicGroup, setSelectedEconomicGroup] = useState<IEconomicGroup | null>(null);
+    const [displayDetails, setDisplayDetails] = useState<boolean>(false);
     const [displayManager, setDisplayManager] = useState<boolean>(false);
     const toast = React.useRef<Toast>(null);
     const [filters, setFilters] = useState<any>({
@@ -98,6 +103,62 @@ const EconomicGroupList: React.FC = () => {
         );
     };
 
+    // Rodapé para controle de carregamento manual/automático
+    const footer = (
+        <div className="flex justify-content-end p-2">
+            {!isLastPage ? (
+                <Button
+                    type="button"
+                    icon="pi pi-plus"
+                    label="Carregar mais organizações"
+                    onClick={() => loadEconomicGroups(page + 1)}
+                    loading={loading}
+                    severity="success" rounded
+                    size="small"
+                />
+            ) : (
+                <span className="text-500 italic py-2">Todas os grupos foram carregados</span>
+            )}
+        </div>
+    );
+
+    const actionBodyTemplate = (rowData: IEconomicGroup) => {
+        return (
+            <div className="flex gap-1">
+                <Button
+                    icon="pi pi-search"
+                    rounded
+                    text
+                    severity="info"
+                    onClick={() => {
+                        setSelectedEconomicGroup(rowData);
+                        setDisplayDetails(true);
+                    }}
+                    tooltip="Ver detalhes"
+                />
+                <Button
+                    icon="pi pi-pencil"
+                    rounded
+                    text
+                    severity="warning"
+                    onClick={() => {
+                        //setOrganizationToEdit(rowData);
+                        //setDisplayUpdater(true);
+                    }}
+                    tooltip="Editar organização"
+                />
+                <Button
+                    icon="pi pi-trash"
+                    rounded
+                    text
+                    severity="danger"
+                    //onClick={() => confirmDelete(rowData)}
+                    tooltip="Excluir organização"
+                />
+            </div>
+        );
+    };
+
     return (
         <div className="p-m-4">
             <Toast ref={toast} />
@@ -128,7 +189,36 @@ const EconomicGroupList: React.FC = () => {
                         </div>
                     </AccordionTab>
                 </Accordion>
+                <DataTable
+                    value={economicGroups}
+                    selectionMode="single"
+                    selection={selectedEconomicGroup}
+                    onSelectionChange={(e) => setSelectedEconomicGroup(e.value as IEconomicGroup)}
+                    dataKey="id"
+                    loading={loading}
+                    footer={footer}
+                    scrollable
+                    scrollHeight="flex"
+                    className="p-datatable-sm"
+                    stripedRows
+                    tableStyle={{ minWidth: '50rem' }}
+                    emptyMessage="Nenhum grupo economico encontrado."
+                >
+                    <Column field="name" header="Nome" sortable bodyClassName="font-bold text-primary"/>
+                    <Column field="description" header="Descricao" sortable />
+                    <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '4rem' }} />
+                </DataTable>
             </Panel>
+
+            <EconomicGroupDetails
+                visible={displayDetails}
+                economicGroup={selectedEconomicGroup}
+                onHide={() => {
+                    setDisplayDetails(false);
+                    setSelectedEconomicGroup(null);
+                }}
+            />
+
         </div>
     )
 }
