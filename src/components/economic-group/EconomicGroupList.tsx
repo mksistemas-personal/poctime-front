@@ -10,6 +10,7 @@ import {EconomicGroupService} from "./EconomicGroupService";
 import {Column} from "primereact/column";
 import {DataTable} from "primereact/datatable";
 import EconomicGroupDetails from "./EconomicGroupDetails";
+import EconomicGroupCreator from "./EconomicGroupCreator";
 
 
 const EconomicGroupList: React.FC = () => {
@@ -216,6 +217,14 @@ const EconomicGroupList: React.FC = () => {
                 onHide={() => {
                     setDisplayDetails(false);
                     setSelectedEconomicGroup(null);
+                }}
+            />
+
+            <EconomicGroupCreator
+                visible={displayManager}
+                onHide={() => setDisplayManager(false)}
+                onSaveSuccess={(newGroup: IEconomicGroup) => {
+                    loadEconomicGroups(0);
                 }}
             />
 

@@ -68,7 +68,10 @@ const EconomicGroupDetails: React.FC<EconomicGroupDetailsProps> = ({ visible, ec
                         className="p-datatable-sm"
                         emptyMessage="Nenhuma organização vinculada encontrada."
                         rows={5}
-                    >
+                        selectionMode="single"
+                        scrollable
+                        scrollHeight="flex"
+                        stripedRows>
                         <Column field="name" header="Nome" sortable></Column>
                         <Column header="Documento" body={cnpjBodyTemplate}
                         ></Column>

@@ -1,6 +1,7 @@
 import {CommonApiService} from "../shared/base/CommonApiService";
 import {CommonStructures} from "../shared/base/CommonStructures";
 import {CommonService} from "../shared/CommonService";
+import {IEconomicGroup} from "./EconomicGroupStructures";
 
 export class EconomicGroupService {
     private static readonly API_URL = 'http://localhost:8181/api/economic-group';
@@ -37,5 +38,19 @@ export class EconomicGroupService {
         }
     }
 
+    static async saveEconomicGroup(economicGroup: Partial<IEconomicGroup>): Promise<IEconomicGroup> {
+        try {
+            const response = await CommonApiService.fetchPostData(this.API_URL, economicGroup);
 
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.log("Erro da Api: ", errorData);
+                throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao salvar grupo econômico'));
+            }
+            return await response.json();
+        } catch (error) {
+            console.log("Erro ao salvar no EconomicGroupService:", error);
+            throw error;
+        }
+    }
 }
