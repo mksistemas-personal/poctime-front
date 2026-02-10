@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Sidebar} from 'primereact/sidebar';
 import {InputText} from 'primereact/inputtext';
 import {InputTextarea} from 'primereact/inputtextarea';
@@ -11,19 +11,54 @@ import DocumentDisplay from '../shared/document/DocumentDisplay';
 import {Toast} from 'primereact/toast';
 import {IEconomicGroup} from "./EconomicGroupStructures";
 import OrganizationSimpleSelector from "../organizations/OrganizationSimpleSelector";
+import {OrganizationService} from "../organizations/OrganizationService";
 
-interface EconomicGroupCreatorProps {
+interface EconomicGroupUpdaterProps {
     visible: boolean;
     onHide: () => void;
+    economicGroup: IEconomicGroup | null;
     onSaveSuccess?: (economicGroup: IEconomicGroup) => void;
 }
 
-const EconomicGroupCreator: React.FC<EconomicGroupCreatorProps> = ({ visible, onHide, onSaveSuccess }) => {
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
+const EconomicGroupUpdater: React.FC<EconomicGroupUpdaterProps> = ({ visible, onHide, economicGroup: initialEconomicGroup, onSaveSuccess }) => {
+
+    const emptyEconomicGroup: IEconomicGroup = {
+        id: '',
+        name: '',
+        description: '',
+        organizationIds: []
+    };
+
+    const [economicGroup, setEconomicGroup] = useState<IEconomicGroup>(emptyEconomicGroup);
     const [selectedOrganizations, setSelectedOrganizations] = useState<IOrganizationView[]>([]);
     const [loading, setLoading] = useState(false);
     const toast = React.useRef<Toast>(null);
+
+    useEffect(() => {
+        if (initialEconomicGroup && visible) {
+            setEconomicGroup({...initialEconomicGroup});
+        }
+    }, [initialEconomicGroup, visible]);
+
+    useEffect(() => {
+        if (visible && economicGroup && economicGroup.id && economicGroup.organizationIds && economicGroup.organizationIds.length > 0) {
+            loadOrganizations();
+        } else if (visible && (!economicGroup.organizationIds || economicGroup.organizationIds.length === 0)) {
+            setSelectedOrganizations([]);
+        }
+    }, [visible, economicGroup.id]);
+
+    const loadOrganizations = async () => {
+        setLoading(true);
+        try {
+            const response = await OrganizationService.getOrganizationsFromList(economicGroup.organizationIds);
+            setSelectedOrganizations(response.content);
+        } catch (error) {
+            console.error("Erro ao carregar organizações do grupo econômico", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleAddOrganization = (org: IOrganizationView) => {
         if (!org || !org.id) {
@@ -48,28 +83,24 @@ const EconomicGroupCreator: React.FC<EconomicGroupCreatorProps> = ({ visible, on
     };
 
     function clearData() {
-        setName('');
-        setDescription('');
-        setSelectedOrganizations([]);
+        setEconomicGroup(emptyEconomicGroup);
     }
 
     const handleSave = async () => {
-        if (!name.trim()) {
+        if (!economicGroup.name.trim()) {
             toast.current?.show({ severity: 'error', summary: 'Erro', detail: 'O nome é obrigatório', life: 3000 });
             return;
         }
 
         setLoading(true);
         try {
-            const savedGroup = await EconomicGroupService.saveEconomicGroup({
-                name,
-                description,
+            const groupToSave = {
+                ...economicGroup,
                 organizationIds: selectedOrganizations.map(org => org.id)
-            });
+            };
+            const savedGroup = await EconomicGroupService.saveEconomicGroup(groupToSave);
             
-            toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'Grupo Econômico criado com sucesso', life: 3000 });
-
-            clearData();
+            toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'Grupo Econômico atualizado com sucesso', life: 3000 });
 
             if (onSaveSuccess)
                 onSaveSuccess(savedGroup);
@@ -109,7 +140,7 @@ const EconomicGroupCreator: React.FC<EconomicGroupCreatorProps> = ({ visible, on
                 onHide={handleCancel}
                 position="right" 
                 style={{ width: '40rem' }}
-                header={<h4 className="m-0">Novo Grupo Econômico</h4>}
+                header={<h4 className="m-0">Editar Grupo Econômico</h4>}
                 className="p-sidebar-sm"
             >
                 <div className="grid mt-2">
@@ -117,8 +148,8 @@ const EconomicGroupCreator: React.FC<EconomicGroupCreatorProps> = ({ visible, on
                         <label htmlFor="name" className="block text-sm font-bold mb-2">Nome*</label>
                         <InputText 
                             id="name" 
-                            value={name} 
-                            onChange={(e) => setName(e.target.value)} 
+                            value={economicGroup.name}
+                            onChange={(e) => setEconomicGroup({...economicGroup, name: e.target.value})} 
                             className="w-full p-inputtext-sm" 
                             placeholder="Digite o nome do grupo"
                         />
@@ -127,9 +158,9 @@ const EconomicGroupCreator: React.FC<EconomicGroupCreatorProps> = ({ visible, on
                     <div className="col-12 field">
                         <label htmlFor="description" className="block text-sm font-bold mb-2">Descrição</label>
                         <InputTextarea 
-                            id="description" 
-                            value={description} 
-                            onChange={(e) => setDescription(e.target.value)} 
+                            id="description"
+                            value={economicGroup.description}
+                            onChange={(e) => setEconomicGroup({...economicGroup, description: e.target.value})} 
                             rows={3} 
                             className="w-full p-inputtext-sm" 
                             placeholder="Digite uma descrição opcional"
@@ -194,4 +225,4 @@ const EconomicGroupCreator: React.FC<EconomicGroupCreatorProps> = ({ visible, on
     );
 };
 
-export default EconomicGroupCreator;
+export default EconomicGroupUpdater;

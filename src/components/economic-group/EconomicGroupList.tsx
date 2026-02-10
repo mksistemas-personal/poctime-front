@@ -11,6 +11,7 @@ import {Column} from "primereact/column";
 import {DataTable} from "primereact/datatable";
 import EconomicGroupDetails from "./EconomicGroupDetails";
 import EconomicGroupCreator from "./EconomicGroupCreator";
+import EconomicGroupUpdater from "./EconomicGroupUpdater";
 
 
 const EconomicGroupList: React.FC = () => {
@@ -21,6 +22,8 @@ const EconomicGroupList: React.FC = () => {
     const [selectedEconomicGroup, setSelectedEconomicGroup] = useState<IEconomicGroup | null>(null);
     const [displayDetails, setDisplayDetails] = useState<boolean>(false);
     const [displayManager, setDisplayManager] = useState<boolean>(false);
+    const [displayUpdater, setDisplayUpdater] = useState<boolean>(false);
+    const [economicGroupToEdit, setEconomicGroupToEdit] = useState<IEconomicGroup | null>(null);
     const toast = React.useRef<Toast>(null);
     const [filters, setFilters] = useState<any>({
         name: '',
@@ -143,8 +146,8 @@ const EconomicGroupList: React.FC = () => {
                     text
                     severity="warning"
                     onClick={() => {
-                        //setOrganizationToEdit(rowData);
-                        //setDisplayUpdater(true);
+                        setEconomicGroupToEdit(rowData);
+                        setDisplayUpdater(true);
                     }}
                     tooltip="Editar organização"
                 />
@@ -228,6 +231,17 @@ const EconomicGroupList: React.FC = () => {
                 }}
             />
 
+            <EconomicGroupUpdater
+                visible={displayUpdater}
+                economicGroup={economicGroupToEdit}
+                onHide={() => {
+                    setDisplayUpdater(false);
+                    setEconomicGroupToEdit(null);
+                }}
+                onSaveSuccess={(updatedEconomicGroup) => {
+                    loadEconomicGroups(0);
+                }}
+            />
         </div>
     )
 }

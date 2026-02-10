@@ -24,6 +24,19 @@ export class CommonApiService {
         });
     }
 
+    static async fetchPutData(url: string, bodyData: any) {
+        const tokenData = await AuthService.getAccessToken();
+        return await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${tokenData.access_token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(bodyData)
+        });
+    }
+
+
     static mountFilter(filters: any) {
         const filterParams: any = {};
         Object.keys(filters).forEach(key => {

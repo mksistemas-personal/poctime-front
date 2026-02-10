@@ -44,7 +44,8 @@ return (
     <div className="min-h-screen flex flex-column surface-ground">
         {/* Topbar Customizada */}
         <header
-            className="surface-card shadow-2 h-4rem flex align-items-center justify-content-between px-4 z-5 sticky top-0">
+            className="surface-card shadow-2 h-4rem flex align-items-center justify-content-between px-4 sticky top-0"
+            style={{ zIndex: 1000 }}>
             <div className="flex align-items-center">
                 <Button
                     icon="pi pi-bars"
@@ -92,11 +93,11 @@ return (
             </div>
         </header>
 
-        <div className="flex flex-grow-1">
+        <div className="flex flex-grow-1 overflow-hidden" style={{ height: 'calc(100vh - 4rem)', position: 'relative' }}>
             {/* Menu Lateral Simplificado */}
             <aside
                 className={`flex flex-column surface-section border-right-1 surface-border shadow-1 transition-all transition-duration-300 ${sidebarVisible ? 'w-14rem' : 'w-0 p-0 border-none'}`}
-                style={{ zIndex: 10 }}
+                style={{ zIndex: 10, height: '100%', overflowY: 'auto' }}
             >
                 {sidebarVisible && (
                     <MegaMenu 

@@ -40,7 +40,12 @@ export class EconomicGroupService {
 
     static async saveEconomicGroup(economicGroup: Partial<IEconomicGroup>): Promise<IEconomicGroup> {
         try {
-            const response = await CommonApiService.fetchPostData(this.API_URL, economicGroup);
+            console.log(economicGroup);
+            let response = undefined;
+            if (economicGroup.id === undefined || economicGroup.id === null)
+                response = await CommonApiService.fetchPostData(this.API_URL, economicGroup);
+            else
+                response = await CommonApiService.fetchPutData(`${this.API_URL}/${economicGroup.id}`, economicGroup);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
