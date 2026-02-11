@@ -98,7 +98,6 @@ return (
         </header>
 
         <div className="flex flex-grow-1 min-h-0 overflow-hidden" style={{ height: 'calc(100vh - 4rem)', position: 'relative' }}>
-            {/* Menu Lateral Simplificado */}
             <aside
                 className={`flex flex-column surface-section border-right-1 surface-border shadow-1 transition-all transition-duration-300 ${sidebarVisible ? 'w-14rem' : 'w-0 p-0 border-none'}`}
                 style={{ zIndex: 10, height: '100%', overflowY: 'auto' }}
@@ -106,8 +105,8 @@ return (
                 {sidebarVisible && (
                     <MegaMenu 
                         model={items} 
-                        orientation="vertical" 
-                        breakpoint="960px" 
+                        orientation="vertical"
+                        breakpoint="960px"
                         className="border-none w-full surface-section"
                         style={{ height: 'auto' }}
                     />
