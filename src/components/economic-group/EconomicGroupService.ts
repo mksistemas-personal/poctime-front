@@ -42,7 +42,7 @@ export class EconomicGroupService {
         try {
             console.log(economicGroup);
             let response = undefined;
-            if (economicGroup.id === undefined || economicGroup.id === null)
+            if (economicGroup.id === undefined || economicGroup.id === null || economicGroup.id === "")
                 response = await CommonApiService.fetchPostData(this.API_URL, economicGroup);
             else
                 response = await CommonApiService.fetchPutData(`${this.API_URL}/${economicGroup.id}`, economicGroup);

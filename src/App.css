@@ -36,3 +36,15 @@
     transform: rotate(360deg);
   }
 }
+
+/* Estilo para destacar o item selecionado no MegaMenu */
+.p-megamenu .p-menuitem.p-highlight > .p-menuitem-content {
+    background: var(--surface-200);
+    color: var(--primary-color);
+}
+
+.p-megamenu .p-menuitem.p-highlight > .p-menuitem-content .p-menuitem-link .p-menuitem-icon,
+.p-megamenu .p-menuitem.p-highlight > .p-menuitem-content .p-menuitem-link .p-menuitem-text {
+    color: var(--primary-color);
+    font-weight: bold;
+}

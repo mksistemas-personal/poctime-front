@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {Button} from 'primereact/button';
 import {Dropdown} from 'primereact/dropdown';
 import {Avatar} from 'primereact/avatar';
@@ -7,9 +7,10 @@ import {MegaMenu} from "primereact/megamenu";
 interface MainLayoutProps {
     children: React.ReactNode;
     onNavigate: (page: string) => void;
+    currentPage?: string;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate}) => {
+const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPage}) => {
     const [selectedOrg, setSelectedOrg] = useState(null);
     const [sidebarVisible, setSidebarVisible] = useState(true);
 
@@ -21,23 +22,26 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate}) => {
     ];
 
 
-    const items = [
+    const items = useMemo(() => [
         {
             label: 'Dashboard',
             icon: 'pi pi pi-home',
+            className: currentPage === 'dashboard' ? 'p-highlight' : '',
             command: () => onNavigate('dashboard')
         },
         {
             label: 'Organizações',
             icon: 'pi pi-building',
+            className: currentPage === 'organizations' ? 'p-highlight' : '',
             command: () => onNavigate('organizations')
         },
         {
             label: 'Grupos economicos',
             icon: 'pi pi-sitemap',
+            className: currentPage === 'economic-groups' ? 'p-highlight' : '',
             command: () => onNavigate('economic-groups')
         }
-    ];
+    ], [onNavigate, currentPage]);
 
 
 return (

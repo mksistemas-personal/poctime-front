@@ -33,7 +33,7 @@ function App() {
 
   return (
     <div className="App">
-      <MainLayout onNavigate={(page) => setCurrentPage(page)}>
+      <MainLayout onNavigate={(page) => setCurrentPage(page)} currentPage={currentPage}>
         {renderContent()}
       </MainLayout>
     </div>

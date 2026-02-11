@@ -45,7 +45,7 @@ const OrganizationList: React.FC = () => {
         isLastPageRef.current = isLastPage;
     }, [isLastPage]);
 
-    const ROWS_PER_PAGE = 5;
+    const ROWS_PER_PAGE = 10;
 
     const loadOrganizations = useCallback(async (pageNumber: number, currentFilters: any = filters) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
