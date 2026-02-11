@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from "react";
 import {Toast} from "primereact/toast";
-import {ConfirmDialog} from "primereact/confirmdialog";
+import {confirmDialog, ConfirmDialog} from "primereact/confirmdialog";
 import {Button} from "primereact/button";
 import {Panel} from "primereact/panel";
 import {Accordion, AccordionTab} from "primereact/accordion";
@@ -91,6 +91,31 @@ const EconomicGroupList: React.FC = () => {
         // loadOrganizations(0, emptyFilters);
     };
 
+    const confirmDelete = (economicGroup: IEconomicGroup) => {
+        confirmDialog({
+            message: `Deseja realmente excluir o grupo economico"${economicGroup.name}"?`,
+            header: 'Confirmação de Exclusão',
+            icon: 'pi pi-exclamation-triangle',
+            acceptLabel: 'Sim',
+            rejectLabel: 'Não',
+            acceptClassName: 'p-button-danger',
+            accept: () => deleteEconomicGroup(economicGroup.id)
+        });
+    };
+
+    const deleteEconomicGroup = async (id: string) => {
+        try {
+            setLoading(true);
+            await EconomicGroupService.deleteEconomicGroup(id);
+            toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'Grupo Economico excluído com sucesso', life: 3000 });
+            loadEconomicGroups(0); // Recarrega a lista
+        } catch (error: any) {
+            toast.current?.show({ severity: 'error', summary: 'Erro', detail: error.message || 'Erro ao excluir grupo economico', life: 3000 });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const headerTemplate = (options: any) => {
         return (
             <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%' }}>
@@ -156,7 +181,7 @@ const EconomicGroupList: React.FC = () => {
                     rounded
                     text
                     severity="danger"
-                    //onClick={() => confirmDelete(rowData)}
+                    onClick={() => confirmDelete(rowData)}
                     tooltip="Excluir organização"
                 />
             </div>

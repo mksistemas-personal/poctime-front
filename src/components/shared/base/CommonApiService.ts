@@ -36,6 +36,16 @@ export class CommonApiService {
         });
     }
 
+    static async fetchDeleteData(url: string) {
+        const tokenData = await AuthService.getAccessToken();
+        return await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${tokenData.access_token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+    }
 
     static mountFilter(filters: any) {
         const filterParams: any = {};

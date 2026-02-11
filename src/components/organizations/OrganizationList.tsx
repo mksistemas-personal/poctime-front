@@ -266,7 +266,7 @@ const OrganizationList: React.FC = () => {
                         loading={loading}
                         footer={footer}
                         scrollable 
-                        scrollHeight="flex" // Ajusta ao tamanho do container
+                        scrollHeight="325px" // Ajusta ao tamanho do container
                         className="p-datatable-sm h-full flex-1"
                         stripedRows
                         tableStyle={{ minWidth: '80rem' }}

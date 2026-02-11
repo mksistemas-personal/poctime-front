@@ -103,8 +103,14 @@ export class OrganizationService {
             responsiblePerson: organization.responsiblePerson,
             responsibleEmail: organization.responsibleEmail,
         };
+        console.log(organization);
+        console.log(organizationRequest);
         try {
-            const response = await CommonApiService.fetchPostData(this.API_URL, organizationRequest);
+            let response = undefined;
+            if (organization.id === undefined || organization.id === null)
+                response = await CommonApiService.fetchPostData(this.API_URL, organizationRequest);
+            else
+                response = await CommonApiService.fetchPutData(`${this.API_URL}/${organization.id}`, organizationRequest);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));

@@ -58,4 +58,19 @@ export class EconomicGroupService {
             throw error;
         }
     }
+
+    static async deleteEconomicGroup(id: string): Promise<void> {
+        try {
+            const response = await CommonApiService.fetchDeleteData(`${this.API_URL}/${id}`);
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao excluir organização'));
+            }
+        } catch (error) {
+            console.error("Erro no OrganizationService ao excluir:", error);
+            throw error;
+        }
+    }
+
 }
