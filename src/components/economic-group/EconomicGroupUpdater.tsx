@@ -190,7 +190,7 @@ const EconomicGroupUpdater: React.FC<EconomicGroupUpdaterProps> = ({ visible, on
                             dataKey="id"
                             selectionMode="single"
                             scrollable
-                            scrollHeight="flex"
+                            scrollHeight="20rem"
                         >
                             <Column field="name" header="Nome" sortable></Column>
                             <Column header="Documento" body={cnpjBodyTemplate}></Column>

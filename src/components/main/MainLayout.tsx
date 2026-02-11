@@ -93,7 +93,7 @@ return (
             </div>
         </header>
 
-        <div className="flex flex-grow-1 overflow-hidden" style={{ height: 'calc(100vh - 4rem)', position: 'relative' }}>
+        <div className="flex flex-grow-1 min-h-0 overflow-hidden" style={{ height: 'calc(100vh - 4rem)', position: 'relative' }}>
             {/* Menu Lateral Simplificado */}
             <aside
                 className={`flex flex-column surface-section border-right-1 surface-border shadow-1 transition-all transition-duration-300 ${sidebarVisible ? 'w-14rem' : 'w-0 p-0 border-none'}`}
@@ -104,17 +104,15 @@ return (
                         model={items} 
                         orientation="vertical" 
                         breakpoint="960px" 
-                        className="border-none w-full"
-                        style={{ height: '100%' }}
+                        className="border-none w-full surface-section"
+                        style={{ height: 'auto' }}
                     />
                 )}
             </aside>
 
             {/* Área de Conteúdo */}
-            <main className="flex-1 p-3 md:p-5 overflow-y-auto">
-                <div className="min-h-full">
-                    {children}
-                </div>
+            <main className="flex-1 p-3 md:p-5 flex flex-column min-h-0">
+                {children}
             </main>
         </div>
     </div>

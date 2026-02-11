@@ -164,10 +164,10 @@ const EconomicGroupList: React.FC = () => {
     };
 
     return (
-        <div className="p-m-4">
+        <div className="flex flex-column h-full">
             <Toast ref={toast} />
             <ConfirmDialog />
-            <Panel headerTemplate={headerTemplate}>
+            <Panel headerTemplate={headerTemplate} className="flex flex-column flex-1 min-h-0" pt={{ content: { className: 'flex flex-column flex-1 min-h-0' } }}>
                 <Accordion className="mb-3">
                     <AccordionTab header={
                         <span className="flex align-items-center gap-2 text-sm small">
@@ -193,25 +193,27 @@ const EconomicGroupList: React.FC = () => {
                         </div>
                     </AccordionTab>
                 </Accordion>
-                <DataTable
-                    value={economicGroups}
-                    selectionMode="single"
-                    selection={selectedEconomicGroup}
-                    onSelectionChange={(e) => setSelectedEconomicGroup(e.value as IEconomicGroup)}
-                    dataKey="id"
-                    loading={loading}
-                    footer={footer}
-                    scrollable
-                    scrollHeight="flex"
-                    className="p-datatable-sm"
-                    stripedRows
-                    tableStyle={{ minWidth: '50rem' }}
-                    emptyMessage="Nenhum grupo economico encontrado."
-                >
-                    <Column field="name" header="Nome" sortable bodyClassName="font-bold text-primary"/>
-                    <Column field="description" header="Descricao" sortable />
-                    <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '4rem' }} />
-                </DataTable>
+                <div className="flex-1 min-h-0">
+                    <DataTable
+                        value={economicGroups}
+                        selectionMode="single"
+                        selection={selectedEconomicGroup}
+                        onSelectionChange={(e) => setSelectedEconomicGroup(e.value as IEconomicGroup)}
+                        dataKey="id"
+                        loading={loading}
+                        footer={footer}
+                         scrollable
+                        scrollHeight="325px"
+                        className="p-datatable-sm h-full flex-1"
+                        stripedRows
+                        tableStyle={{ minWidth: '50rem' }}
+                        emptyMessage="Nenhum grupo economico encontrado."
+                    >
+                        <Column field="name" header="Nome" sortable bodyClassName="font-bold text-primary"/>
+                        <Column field="description" header="Descricao" sortable />
+                        <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '4rem' }} />
+                    </DataTable>
+                </div>
             </Panel>
 
             <EconomicGroupDetails
