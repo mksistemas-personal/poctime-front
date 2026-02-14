@@ -7,15 +7,12 @@ export class EconomicGroupService {
     private static readonly API_URL = 'http://localhost:8181/api/economic-group';
 
 
-    static async getAllEconomicGroups(page: number = 0, size: number = 10, filters: any = {}) {
+    static async getAllEconomicGroups(page: number = 0, size: number = 10, filters?: string) {
         try {
-
-            const filterParams = CommonApiService.mountFilter(filters);
-
             const params = new URLSearchParams({
                 page: page.toString(),
                 size: size.toString(),
-                ...filterParams
+                term: filters || ''
             });
 
             const url: string = `${this.API_URL}?${params.toString()}`;
@@ -26,13 +23,11 @@ export class EconomicGroupService {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                console.log(errorData);
                 throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao buscar grupos economicos'));
             }
 
             return await response.json();
         } catch (error) {
-            console.log(error);
             console.error("Erro no EconomicGroupService:", error);
             throw error;
         }
@@ -40,7 +35,6 @@ export class EconomicGroupService {
 
     static async saveEconomicGroup(economicGroup: Partial<IEconomicGroup>): Promise<IEconomicGroup> {
         try {
-            console.log(economicGroup);
             let response = undefined;
             if (economicGroup.id === undefined || economicGroup.id === null || economicGroup.id === "")
                 response = await CommonApiService.fetchPostData(this.API_URL, economicGroup);
@@ -49,12 +43,11 @@ export class EconomicGroupService {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                console.log("Erro da Api: ", errorData);
                 throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao salvar grupo econômico'));
             }
             return await response.json();
         } catch (error) {
-            console.log("Erro ao salvar no EconomicGroupService:", error);
+            console.error("Erro ao salvar no EconomicGroupService:", error);
             throw error;
         }
     }
@@ -65,10 +58,10 @@ export class EconomicGroupService {
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
-                throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao excluir organização'));
+                throw new Error(CommonService.getErrorMessage(errorData.message, 'Erro ao excluir grupo econômico'));
             }
         } catch (error) {
-            console.error("Erro no OrganizationService ao excluir:", error);
+            console.error("Erro no EconomicGroupService ao excluir:", error);
             throw error;
         }
     }

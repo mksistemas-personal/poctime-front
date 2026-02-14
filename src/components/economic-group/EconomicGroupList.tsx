@@ -25,10 +25,7 @@ const EconomicGroupList: React.FC = () => {
     const [displayUpdater, setDisplayUpdater] = useState<boolean>(false);
     const [economicGroupToEdit, setEconomicGroupToEdit] = useState<IEconomicGroup | null>(null);
     const toast = React.useRef<Toast>(null);
-    const [filters, setFilters] = useState<any>({
-        name: '',
-        organization: ''
-    });
+    const [filters, setFilters] = useState<string>('');
 
     const loadingRef = React.useRef(loading);
     const isLastPageRef = React.useRef(isLastPage);
@@ -43,11 +40,11 @@ const EconomicGroupList: React.FC = () => {
 
     const ROWS_PER_PAGE = 10;
 
-    const loadEconomicGroups = useCallback(async (pageNumber: number, currentFilters: any = filters) => {
+    const loadEconomicGroups = useCallback(async (pageNumber: number, currentFilters?: string) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
-            const data = await EconomicGroupService.getAllEconomicGroups(pageNumber, ROWS_PER_PAGE, currentFilters);
+            const data = await EconomicGroupService.getAllEconomicGroups(pageNumber, ROWS_PER_PAGE, currentFilters !== undefined ? currentFilters : filters);
 
             const content = data.content.map((item: any) => {
                 if (item.economicGroup) {
@@ -69,26 +66,27 @@ const EconomicGroupList: React.FC = () => {
 
     // Carrega a primeira página ao iniciar
     useEffect(() => {
-        loadEconomicGroups(0);
-    }, [loadEconomicGroups]);
+        loadEconomicGroups(0, filters);
+    }, []);
 
 
-    const onFilterChange = (e: any, field: string) => {
-        const value = e.target.value;
-        setFilters((prev: any) => ({ ...prev, [field]: value }));
+    const onFilterChange = (e: any) => {
+        setFilters(e.target.value);
+    };
+
+    const onKeyDown = (e: any) => {
+        if (e.key === 'Enter') {
+            applyFilters();
+        }
     };
 
     const applyFilters = () => {
-        // loadOrganizations(0, filters);
+        loadEconomicGroups(0, filters);
     };
 
     const clearFilters = () => {
-        const emptyFilters = {
-            name: '',
-            organization: ''
-        };
-        setFilters(emptyFilters);
-        // loadOrganizations(0, emptyFilters);
+        setFilters('');
+        loadEconomicGroups(0, '');
     };
 
     const confirmDelete = (economicGroup: IEconomicGroup) => {
@@ -108,7 +106,7 @@ const EconomicGroupList: React.FC = () => {
             setLoading(true);
             await EconomicGroupService.deleteEconomicGroup(id);
             toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'Grupo Economico excluído com sucesso', life: 3000 });
-            loadEconomicGroups(0); // Recarrega a lista
+            loadEconomicGroups(0, filters); // Recarrega a lista
         } catch (error: any) {
             toast.current?.show({ severity: 'error', summary: 'Erro', detail: error.message || 'Erro ao excluir grupo economico', life: 3000 });
         } finally {
@@ -139,14 +137,14 @@ const EconomicGroupList: React.FC = () => {
                 <Button
                     type="button"
                     icon="pi pi-plus"
-                    label="Carregar mais organizações"
-                    onClick={() => loadEconomicGroups(page + 1)}
+                    label="Carregar mais grupos"
+                    onClick={() => loadEconomicGroups(page + 1, filters)}
                     loading={loading}
                     severity="success" rounded
                     size="small"
                 />
             ) : (
-                <span className="text-500 italic py-2">Todas os grupos foram carregados</span>
+                <span className="text-500 italic py-2">Todos os grupos foram carregados</span>
             )}
         </div>
     );
@@ -201,13 +199,9 @@ const EconomicGroupList: React.FC = () => {
                         </span>
                     }>
                         <div className="p-fluid grid row-gap-2">
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="name" className="text-xs font-bold text-left block">Nome do Grupo Economico</label>
-                                <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Grupo Economico..." />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="organization" className="text-xs font-bold text-left block">Nome da Organizacao</label>
-                                <InputText id="organization" value={filters.organization} onChange={(e) => onFilterChange(e, 'organization')} className="p-inputtext-sm" />
+                            <div className="field sm:col-6 md:col-4 mb-0">
+                                <label htmlFor="name" className="text-xs font-bold text-left block">Termo de Pesquisa</label>
+                                <InputText id="name" value={filters} onChange={onFilterChange} onKeyDown={onKeyDown} className="p-inputtext-sm" placeholder="Pesquisar por nome ou descrição..." />
                             </div>
                             <div className="sm:col-6 flex justify-content-end gap-2 mt-0 align-items-end" style={{ width: 'auto', marginLeft: 'auto' }}>
                                 <div className="flex gap-2">
@@ -228,7 +222,7 @@ const EconomicGroupList: React.FC = () => {
                         loading={loading}
                         footer={footer}
                          scrollable
-                        scrollHeight="325px"
+                        scrollHeight="525px"
                         className="p-datatable-sm h-full flex-1"
                         stripedRows
                         tableStyle={{ minWidth: '50rem' }}
@@ -254,7 +248,7 @@ const EconomicGroupList: React.FC = () => {
                 visible={displayManager}
                 onHide={() => setDisplayManager(false)}
                 onSaveSuccess={(newGroup: IEconomicGroup) => {
-                    loadEconomicGroups(0);
+                    loadEconomicGroups(0, filters);
                 }}
             />
 
@@ -266,7 +260,7 @@ const EconomicGroupList: React.FC = () => {
                     setEconomicGroupToEdit(null);
                 }}
                 onSaveSuccess={(updatedEconomicGroup) => {
-                    loadEconomicGroups(0);
+                    loadEconomicGroups(0, filters);
                 }}
             />
         </div>
