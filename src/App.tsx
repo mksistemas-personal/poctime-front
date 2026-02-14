@@ -21,13 +21,13 @@ function App() {
   const renderContent = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <AdminDashboard />;
+        return <AdminDashboard onNavigate={(page) => setCurrentPage(page)} />;
       case 'organizations':
         return <OrganizationList />;
       case 'economic-groups':
         return <EconomicGroupList />;
       default:
-        return <AdminDashboard />;
+        return <AdminDashboard onNavigate={(page) => setCurrentPage(page)} />;
     }
   };
 
