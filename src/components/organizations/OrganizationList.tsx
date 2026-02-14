@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
-import { Panel } from 'primereact/panel';
-import { Button } from 'primereact/button';
-import { InputText } from 'primereact/inputtext';
-import { Accordion, AccordionTab } from 'primereact/accordion';
-import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
-import { Toast } from 'primereact/toast';
+import React, {useCallback, useEffect, useState} from 'react';
+import {DataTable} from 'primereact/datatable';
+import {Column} from 'primereact/column';
+import {Panel} from 'primereact/panel';
+import {Button} from 'primereact/button';
+import {InputText} from 'primereact/inputtext';
+import {Accordion, AccordionTab} from 'primereact/accordion';
+import {ConfirmDialog, confirmDialog} from 'primereact/confirmdialog';
+import {Toast} from 'primereact/toast';
 import FederalStateSelector from '../shared/states/FederalStateSelector';
-import { OrganizationService  } from './OrganizationService';
-import { IOrganization } from './OrganizationStructures';
+import {OrganizationService} from './OrganizationService';
+import {IOrganization} from './OrganizationStructures';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
 import OrganizationDetails from './OrganizationDetails';
 import OrganizationManager from './OrganizationManager';
@@ -45,7 +45,7 @@ const OrganizationList: React.FC = () => {
         isLastPageRef.current = isLastPage;
     }, [isLastPage]);
 
-    const ROWS_PER_PAGE = 5;
+    const ROWS_PER_PAGE = 10;
 
     const loadOrganizations = useCallback(async (pageNumber: number, currentFilters: any = filters) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
@@ -165,6 +165,8 @@ const OrganizationList: React.FC = () => {
                         setDisplayDetails(true);
                     }}
                     tooltip="Ver detalhes"
+                    size="small"
+                    className="p-1"
                 />
                 <Button
                     icon="pi pi-pencil"
@@ -176,6 +178,8 @@ const OrganizationList: React.FC = () => {
                         setDisplayUpdater(true);
                     }}
                     tooltip="Editar organização"
+                    size="small"
+                    className="p-1"
                 />
                 <Button
                     icon="pi pi-trash"
@@ -184,6 +188,8 @@ const OrganizationList: React.FC = () => {
                     severity="danger"
                     onClick={() => confirmDelete(rowData)}
                     tooltip="Excluir organização"
+                    size="small"
+                    className="p-1"
                 />
             </div>
         );
@@ -191,8 +197,8 @@ const OrganizationList: React.FC = () => {
 
     const headerTemplate = (options: any) => {
         return (
-            <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%' }}>
-                <span className="text-xl font-bold">Gerenciamento de Organizações</span>
+            <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%', padding: '0.5rem 1rem' }}>
+                <span className="text-lg font-bold">Gerenciamento de Organizações</span>
                 <Button
                     label="Nova Organização"
                     icon="pi pi-plus"
@@ -206,14 +212,14 @@ const OrganizationList: React.FC = () => {
     };
 
     return (
-        <div className="p-m-4">
+        <div className="flex flex-column h-full">
             <Toast ref={toast} />
             <ConfirmDialog />
-            <Panel headerTemplate={headerTemplate}>
-                <Accordion className="mb-3">
+            <Panel headerTemplate={headerTemplate} className="flex flex-column flex-1 min-h-0" pt={{ content: { className: 'flex flex-column flex-1 min-h-0' } }}>
+                <Accordion className="mb-2">
                     <AccordionTab header={
-                        <span className="flex align-items-center gap-2 text-sm small">
-                            <i className="pi pi-filter"></i>
+                        <span className="flex align-items-center gap-2 text-xs">
+                            <i className="pi pi-filter" style={{ fontSize: '0.75rem' }}></i>
                             Filtros de Pesquisa
                         </span>
                     }>
@@ -256,29 +262,31 @@ const OrganizationList: React.FC = () => {
                     </AccordionTab>
                 </Accordion>
 
-                <DataTable 
-                    value={organizations} 
-                    selectionMode="single"
-                    selection={selectedOrganization}
-                    onSelectionChange={(e) => setSelectedOrganization(e.value as IOrganization)}
-                    dataKey="id"
-                    loading={loading}
-                    footer={footer}
-                    scrollable 
-                    scrollHeight="flex" // Ajusta ao tamanho do container
-                    className="p-datatable-sm"
-                    stripedRows
-                    tableStyle={{ minWidth: '50rem' }}
-                    emptyMessage="Nenhuma organização encontrada."
-                >
-                    <Column field="organizationPerson.name" header="Nome" sortable bodyClassName="font-bold text-primary"/>
-                    <Column header="Doc." body={cnpjBodyTemplate} />
-                    <Column field="responsiblePerson.name" header="Responsável" sortable />
-                    <Column header="Resp. Doc." body={cpfBodyTemplate} />
-                    <Column field="responsibleEmail" header="E-mail" />
-                    <Column field="address.city" header="Cidade" sortable />
-                    <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '4rem' }} />
-                </DataTable>
+                <div className="flex-1 min-h-0">
+                    <DataTable 
+                        value={organizations} 
+                        selectionMode="single"
+                        selection={selectedOrganization}
+                        onSelectionChange={(e) => setSelectedOrganization(e.value as IOrganization)}
+                        dataKey="id"
+                        loading={loading}
+                        footer={footer}
+                        scrollable 
+                        scrollHeight="525px" // Ajusta ao tamanho do container
+                        className="p-datatable-sm h-full flex-1 text-sm"
+                        stripedRows
+                        tableStyle={{ minWidth: '80rem' }}
+                        emptyMessage="Nenhuma organização encontrada."
+                    >
+                        <Column field="organizationPerson.name" header="Nome" sortable bodyClassName="font-bold text-primary py-1" headerClassName="text-sm py-2"/>
+                        <Column header="Doc." body={cnpjBodyTemplate} bodyClassName="py-1" headerClassName="text-sm py-2" />
+                        <Column field="responsiblePerson.name" header="Responsável" sortable bodyClassName="py-1" headerClassName="text-sm py-2" />
+                        <Column header="Resp. Doc." body={cpfBodyTemplate} bodyClassName="py-1" headerClassName="text-sm py-2" />
+                        <Column field="responsibleEmail" header="E-mail" bodyClassName="py-1" headerClassName="text-sm py-2" />
+                        <Column field="address.city" header="Cidade" sortable bodyClassName="py-1" headerClassName="text-sm py-2" />
+                        <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '8rem' }} bodyClassName="py-1 text-right" headerClassName="py-2" />
+                    </DataTable>
+                </div>
             </Panel>
 
             <OrganizationDetails

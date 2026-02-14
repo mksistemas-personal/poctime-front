@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {Button} from 'primereact/button';
 import {Dropdown} from 'primereact/dropdown';
 import {Avatar} from 'primereact/avatar';
@@ -7,9 +7,10 @@ import {MegaMenu} from "primereact/megamenu";
 interface MainLayoutProps {
     children: React.ReactNode;
     onNavigate: (page: string) => void;
+    currentPage?: string;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate}) => {
+const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPage}) => {
     const [selectedOrg, setSelectedOrg] = useState(null);
     const [sidebarVisible, setSidebarVisible] = useState(true);
 
@@ -21,25 +22,34 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate}) => {
     ];
 
 
-    const items = [
+    const items = useMemo(() => [
         {
             label: 'Dashboard',
             icon: 'pi pi pi-home',
+            className: currentPage === 'dashboard' ? 'p-highlight' : '',
             command: () => onNavigate('dashboard')
         },
         {
             label: 'Organizações',
             icon: 'pi pi-building',
+            className: currentPage === 'organizations' ? 'p-highlight' : '',
             command: () => onNavigate('organizations')
+        },
+        {
+            label: 'Grupos economicos',
+            icon: 'pi pi-sitemap',
+            className: currentPage === 'economic-groups' ? 'p-highlight' : '',
+            command: () => onNavigate('economic-groups')
         }
-    ];
+    ], [onNavigate, currentPage]);
 
 
 return (
     <div className="min-h-screen flex flex-column surface-ground">
         {/* Topbar Customizada */}
         <header
-            className="surface-card shadow-2 h-4rem flex align-items-center justify-content-between px-4 z-5 sticky top-0">
+            className="surface-card shadow-2 h-4rem flex align-items-center justify-content-between px-4 sticky top-0"
+            style={{ zIndex: 1000 }}>
             <div className="flex align-items-center">
                 <Button
                     icon="pi pi-bars"
@@ -87,28 +97,25 @@ return (
             </div>
         </header>
 
-        <div className="flex flex-grow-1">
-            {/* Menu Lateral Simplificado */}
+        <div className="flex flex-grow-1 min-h-0 overflow-hidden" style={{ height: 'calc(100vh - 4rem)', position: 'relative' }}>
             <aside
                 className={`flex flex-column surface-section border-right-1 surface-border shadow-1 transition-all transition-duration-300 ${sidebarVisible ? 'w-14rem' : 'w-0 p-0 border-none'}`}
-                style={{ zIndex: 10 }}
+                style={{ zIndex: 10, height: '100%', overflowY: 'auto' }}
             >
                 {sidebarVisible && (
                     <MegaMenu 
                         model={items} 
-                        orientation="vertical" 
-                        breakpoint="960px" 
-                        className="border-none w-full"
-                        style={{ height: '100%' }}
+                        orientation="vertical"
+                        breakpoint="960px"
+                        className="border-none w-full surface-section"
+                        style={{ height: 'auto' }}
                     />
                 )}
             </aside>
 
             {/* Área de Conteúdo */}
-            <main className="flex-1 p-3 md:p-5 overflow-y-auto">
-                <div className="min-h-full">
-                    {children}
-                </div>
+            <main className="flex-1 p-3 md:p-5 flex flex-column min-h-0">
+                {children}
             </main>
         </div>
     </div>

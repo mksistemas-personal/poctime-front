@@ -36,3 +36,27 @@
     transform: rotate(360deg);
   }
 }
+
+/* Estilo para destacar o item selecionado no MegaMenu */
+.p-megamenu .p-menuitem.p-highlight > .p-menuitem-content {
+    background: var(--surface-200) !important;
+    color: var(--primary-color) !important;
+}
+
+.p-megamenu .p-menuitem.p-highlight > .p-menuitem-content .p-menuitem-link .p-menuitem-icon,
+.p-megamenu .p-menuitem.p-highlight > .p-menuitem-content .p-menuitem-link .p-menuitem-text {
+    color: var(--primary-color) !important;
+    font-weight: bold !important;
+}
+
+/* Remove o foco padrão do primeiro item ou item focado que causa o cinza escuro */
+.p-megamenu .p-menuitem:not(.p-highlight) > .p-menuitem-content:focus,
+.p-megamenu .p-menuitem:not(.p-highlight).p-focus > .p-menuitem-content,
+.p-megamenu .p-menuitem:not(.p-highlight).p-menuitem-active > .p-menuitem-content {
+    background: transparent !important;
+}
+
+/* Garante que o hover continue funcionando para itens não selecionados */
+.p-megamenu .p-menuitem:not(.p-highlight) > .p-menuitem-content:hover {
+    background: var(--surface-hover) !important;
+}

@@ -2,39 +2,37 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {Dropdown, DropdownChangeEvent} from 'primereact/dropdown';
 import {Button} from 'primereact/button';
 import {OrganizationService} from './OrganizationService';
-import {IOrganizationWithCityProjection} from './OrganizationStructures';
+import {IOrganizationView} from './OrganizationStructures';
 import DocumentDisplay, {DocumentType} from '../shared/document/DocumentDisplay';
 
 interface OrganizationSelectorProps {
     value: any;
     onChange: (e: DropdownChangeEvent) => void;
     onAddNew?: () => void;
-    documentType?: 'cnpj' | 'cpf';
     placeholder?: string;
 }
 
-const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({ 
+const OrganizationSimpleSelector: React.FC<OrganizationSelectorProps> = ({
     value, 
     onChange, 
-    onAddNew, 
-    documentType = 'cnpj',
+    onAddNew,
     placeholder = "Selecione uma Organização"
 }) => {
-    const [organizations, setOrganizations] = useState<IOrganizationWithCityProjection[]>([]);
+    const [organizations, setOrganizations] = useState<IOrganizationView[]>([]);
     const [loading, setLoading] = useState(false);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const loadData= useCallback(async () => {
         setLoading(true);
         try {
-            const response = await OrganizationService.getOrganizationsWithCity(0, 9999, documentType);
+            const response = await OrganizationService.getOrganizationsFromList();
             setOrganizations(response.content);
         } catch (error) {
             console.error("Erro ao carregar organizações:", error);
         } finally {
             setLoading(false);
         }
-    }, [documentType]);
+    }, []);
 
     useEffect(() => {
         loadData();
@@ -42,63 +40,39 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
 
 
     // Template para os itens na lista suspensa
-    const itemTemplate = (option: IOrganizationWithCityProjection) => {
-        const isOrganization = !!option.id;
-        const hasCity = !!option.city;
+    const itemTemplate = (option: IOrganizationView) => {
         return (
             <div className="flex align-items-center gap-2 py-1 text-sm">
-                <i className={isOrganization ? "pi pi-building text-primary" : "pi pi-user text-600"} 
-                   title={isOrganization ? "Organização" : "Pessoa Jurídica"}
+                <i className="pi pi-building text-primary"
+                   title="Organização"
                    style={{ fontSize: '1rem' }}></i>
                 
-                <span className="font-bold text-primary">{option.personName}</span>
+                <span className="font-bold text-primary">{option.name}</span>
                 
                 <span className="text-400">|</span>
 
                 <DocumentDisplay
-                    type={option.documentType as DocumentType}
-                    value={option.documentNumber}
+                    type={option.document.type as DocumentType}
+                    value={option.document.identifier}
                 />
-
-                {hasCity && (
-                    <>
-                        <span className="text-400">|</span>
-                        <span className="text-600 flex align-items-center">
-                            <i className="pi pi-map-marker mr-1" style={{ fontSize: '0.7rem' }}></i>
-                            {option.city}
-                        </span>
-                    </>
-                )}
             </div>
         );
     };
 
     // Template para o item selecionado no campo (quando fechado)
-    const valueTemplate = (option: IOrganizationWithCityProjection, props: any) => {
+    const valueTemplate = (option: IOrganizationView, props: any) => {
         if (option) {
-            const isOrganization = !!option.id;
-            const hasCity = !!option.city;
             return (
                 <div className="flex align-items-center gap-2 text-sm">
-                    <i className={isOrganization ? "pi pi-building text-primary" : "pi pi-user text-600"} 
+                    <i className="pi pi-building text-primary"
                        style={{ fontSize: '0.9rem' }}></i>
-                    <span className="font-bold">{option.personName}</span>
+                    <span className="font-bold">{option.name}</span>
 
                     <span className="text-400">|</span>
                     <DocumentDisplay
-                        type={option.documentType as DocumentType}
-                        value={option.documentNumber}
+                        type={option.document.type as DocumentType}
+                        value={option.document.identifier}
                     />
-
-                    {hasCity && (
-                        <>
-                            <span className="text-400">|</span>
-                            <span className="text-600 flex align-items-center">
-                                <i className="pi pi-map-marker mr-1" style={{ fontSize: '0.7rem' }}></i>
-                                {option.city}
-                            </span>
-                        </>
-                    )}
                 </div>
             );
         }
@@ -126,11 +100,11 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
             value={value}
             options={organizations}
             onChange={onChange}
-            optionLabel="personName"
-            dataKey="personId"
+            optionLabel="name"
+            dataKey="id"
             placeholder={placeholder}
             filter
-            filterBy="personName,documentNumber"
+            filterBy="name, document.identifier"
             showClear
             loading={loading}
             itemTemplate={itemTemplate}
@@ -138,10 +112,10 @@ const OrganizationSelector: React.FC<OrganizationSelectorProps> = ({
             panelFooterTemplate={panelFooterTemplate}
             className="w-full p-inputtext-sm"
             panelStyle={{ minWidth: '25rem' }}
-            scrollHeight="300px"
+            scrollHeight="flex"
             filterPlaceholder="Buscar..."
         />
     );
 };
 
-export default OrganizationSelector;
+export default OrganizationSimpleSelector;

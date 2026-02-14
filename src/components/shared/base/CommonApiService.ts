@@ -23,4 +23,37 @@ export class CommonApiService {
             body: JSON.stringify(bodyData)
         });
     }
+
+    static async fetchPutData(url: string, bodyData: any) {
+        const tokenData = await AuthService.getAccessToken();
+        return await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${tokenData.access_token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(bodyData)
+        });
+    }
+
+    static async fetchDeleteData(url: string) {
+        const tokenData = await AuthService.getAccessToken();
+        return await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${tokenData.access_token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+    }
+
+    static mountFilter(filters: any) {
+        const filterParams: any = {};
+        Object.keys(filters).forEach(key => {
+            if (filters[key] !== undefined && filters[key] !== null && filters[key] !== '') {
+                filterParams[key] = `${filters[key]}`;
+            }
+        });
+        return filterParams;
+    }
 }
