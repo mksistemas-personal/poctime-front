@@ -92,24 +92,31 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
                     return (
                         <div key={key} className="col-12 md:col-6 lg:col-4">
                             <Card 
-                                className={`shadow-2 border-round cursor-pointer hover:shadow-4 transition-all transition-duration-300`}
+                                className={`shadow-1 border-none border-left-3 border-${color}-500 cursor-pointer hover:shadow-4 transition-all transition-duration-300 surface-card`}
                                 onClick={() => hasLink && onNavigate(targetPage)}
                             >
-                                <div className="flex justify-content-between mb-3">
-                                    <div>
-                                        <span className="block text-500 font-medium mb-3">{title}</span>
-                                        <div className="text-900 font-bold text-2xl">
-                                            {loading ? <i className="pi pi-spin pi-spinner"></i> : value}
+                                <div className="flex align-items-center justify-content-between">
+                                    <div className="flex flex-column">
+                                        <span className="text-500 font-medium mb-1 text-sm">{title}</span>
+                                        <div className="text-900 font-bold text-3xl">
+                                            {loading ? <i className="pi pi-spin pi-spinner text-xl"></i> : value}
+                                        </div>
+                                        <div className="mt-2">
+                                            <span className={`text-${color}-500 font-medium text-xs bg-${color}-50 px-2 py-1 border-round`}>
+                                                Total registrado
+                                            </span>
                                         </div>
                                     </div>
-                                    <div className={`flex align-items-center justify-content-center bg-${color}-100 border-round`} style={{width: '3rem', height: '3rem'}}>
-                                        <i className={`pi ${icon} text-${color}-500 text-2xl`}></i>
+                                    <div className={`flex align-items-center justify-content-center bg-${color}-50 border-round-xl`} style={{width: '4rem', height: '4rem'}}>
+                                        <i className={`pi ${icon} text-${color}-600 text-3xl`}></i>
                                     </div>
                                 </div>
-                                <div className="flex align-items-center">
-                                    <span className="text-500 font-medium">Total registrado</span>
-                                    {hasLink && <i className="pi pi-arrow-right ml-auto text-500"></i>}
-                                </div>
+                                {hasLink && (
+                                    <div className="flex align-items-center mt-3 pt-3 border-top-1 surface-border">
+                                        <span className="text-xs text-primary font-bold">VER DETALHES</span>
+                                        <i className="pi pi-chevron-right ml-auto text-primary text-xs"></i>
+                                    </div>
+                                )}
                             </Card>
                         </div>
                     );
