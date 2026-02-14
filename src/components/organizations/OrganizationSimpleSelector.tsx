@@ -112,7 +112,7 @@ const OrganizationSimpleSelector: React.FC<OrganizationSelectorProps> = ({
             panelFooterTemplate={panelFooterTemplate}
             className="w-full p-inputtext-sm"
             panelStyle={{ minWidth: '25rem' }}
-            scrollHeight="300px"
+            scrollHeight="flex"
             filterPlaceholder="Buscar..."
         />
     );

@@ -12,11 +12,65 @@ import {DataTable} from "primereact/datatable";
 import EconomicGroupDetails from "./EconomicGroupDetails";
 import EconomicGroupCreator from "./EconomicGroupCreator";
 import EconomicGroupUpdater from "./EconomicGroupUpdater";
+import {IOrganizationView} from "../organizations/OrganizationStructures";
+import {OrganizationService} from "../organizations/OrganizationService";
+import DocumentDisplay from "../shared/document/DocumentDisplay";
+
+
+const EconomicGroupOrganizationsSubTable: React.FC<{ economicGroup: IEconomicGroup }> = ({ economicGroup }) => {
+    const [organizations, setOrganizations] = useState<IOrganizationView[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (economicGroup && economicGroup.organizationIds && economicGroup.organizationIds.length > 0) {
+            loadOrganizations();
+        } else {
+            setOrganizations([]);
+        }
+    }, [economicGroup]);
+
+    const loadOrganizations = async () => {
+        setLoading(true);
+        try {
+            const response = await OrganizationService.getOrganizationsFromList(economicGroup.organizationIds);
+            setOrganizations(response.content);
+        } catch (error) {
+            console.error("Erro ao carregar organizações do grupo econômico", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const cnpjBodyTemplate = (rowData: IOrganizationView) => {
+        return <div className="text-sm"><DocumentDisplay type="CNPJ" value={rowData.document.identifier} /></div>;
+    };
+
+    return (
+        <div className="surface-card p-2 border-round shadow-1">
+            <div className="flex align-items-center mb-2 px-1">
+                <i className="pi pi-building mr-2 text-primary" style={{ fontSize: '0.8rem' }}></i>
+                <span className="text-primary font-bold uppercase text-xs">Organizações</span>
+            </div>
+            <DataTable
+                value={organizations}
+                loading={loading}
+                className="p-datatable-sm h-full flex-1 text-sm"
+                emptyMessage="Nenhuma organização vinculada encontrada."
+                stripedRows
+                responsiveLayout="scroll"
+            >
+                <Column field="name" header="Nome" sortable className="text-sm"></Column>
+                <Column header="Documento" body={cnpjBodyTemplate} className="text-sm"></Column>
+            </DataTable>
+        </div>
+    );
+};
 
 
 const EconomicGroupList: React.FC = () => {
     const [economicGroups, setEconomicGroups] = useState<IEconomicGroup[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
+    const [expandedRows, setExpandedRows] = useState<any>(null);
     const [page, setPage] = useState<number>(0);
     const [isLastPage, setIsLastPage] = useState<boolean>(false);
     const [selectedEconomicGroup, setSelectedEconomicGroup] = useState<IEconomicGroup | null>(null);
@@ -116,8 +170,8 @@ const EconomicGroupList: React.FC = () => {
 
     const headerTemplate = (options: any) => {
         return (
-            <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%' }}>
-                <span className="text-xl font-bold">Gerenciamento de Grupos Economicos</span>
+            <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%', padding: '0.5rem 1rem' }}>
+                <span className="text-lg font-bold">Gerenciamento de Grupos Economicos</span>
                 <Button
                     label="Novo Grupo Economico"
                     icon="pi pi-plus"
@@ -162,6 +216,8 @@ const EconomicGroupList: React.FC = () => {
                         setDisplayDetails(true);
                     }}
                     tooltip="Ver detalhes"
+                    size="small"
+                    className="p-1"
                 />
                 <Button
                     icon="pi pi-pencil"
@@ -173,6 +229,8 @@ const EconomicGroupList: React.FC = () => {
                         setDisplayUpdater(true);
                     }}
                     tooltip="Editar organização"
+                    size="small"
+                    className="p-1"
                 />
                 <Button
                     icon="pi pi-trash"
@@ -181,7 +239,17 @@ const EconomicGroupList: React.FC = () => {
                     severity="danger"
                     onClick={() => confirmDelete(rowData)}
                     tooltip="Excluir organização"
+                    size="small"
+                    className="p-1"
                 />
+            </div>
+        );
+    };
+
+    const rowExpansionTemplate = (data: IEconomicGroup) => {
+        return (
+            <div className="py-2 px-3 surface-ground">
+                <EconomicGroupOrganizationsSubTable economicGroup={data} />
             </div>
         );
     };
@@ -191,10 +259,10 @@ const EconomicGroupList: React.FC = () => {
             <Toast ref={toast} />
             <ConfirmDialog />
             <Panel headerTemplate={headerTemplate} className="flex flex-column flex-1 min-h-0" pt={{ content: { className: 'flex flex-column flex-1 min-h-0' } }}>
-                <Accordion className="mb-3">
+                <Accordion className="mb-2">
                     <AccordionTab header={
-                        <span className="flex align-items-center gap-2 text-sm small">
-                            <i className="pi pi-filter"></i>
+                        <span className="flex align-items-center gap-2 text-xs">
+                            <i className="pi pi-filter" style={{ fontSize: '0.75rem' }}></i>
                             Filtros de Pesquisa
                         </span>
                     }>
@@ -218,19 +286,23 @@ const EconomicGroupList: React.FC = () => {
                         selectionMode="single"
                         selection={selectedEconomicGroup}
                         onSelectionChange={(e) => setSelectedEconomicGroup(e.value as IEconomicGroup)}
+                        expandedRows={expandedRows}
+                        onRowToggle={(e) => setExpandedRows(e.data)}
+                        rowExpansionTemplate={rowExpansionTemplate}
                         dataKey="id"
                         loading={loading}
                         footer={footer}
-                         scrollable
+                        scrollable
                         scrollHeight="525px"
-                        className="p-datatable-sm h-full flex-1"
+                        className="p-datatable-sm h-full flex-1 text-sm"
                         stripedRows
                         tableStyle={{ minWidth: '50rem' }}
                         emptyMessage="Nenhum grupo economico encontrado."
                     >
-                        <Column field="name" header="Nome" sortable bodyClassName="font-bold text-primary"/>
-                        <Column field="description" header="Descricao" sortable />
-                        <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '4rem' }} />
+                        <Column expander={true} style={{ width: '2rem' }} bodyClassName="py-1" />
+                        <Column field="name" header="Nome" sortable bodyClassName="font-bold text-primary py-1" headerClassName="text-sm py-2" />
+                        <Column field="description" header="Descricao" sortable bodyClassName="py-1" headerClassName="text-sm py-2" />
+                        <Column body={actionBodyTemplate} exportable={false} style={{ width: '8rem' }} bodyClassName="py-1 text-right" headerClassName="py-2" />
                     </DataTable>
                 </div>
             </Panel>

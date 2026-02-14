@@ -37,24 +37,31 @@ const EconomicGroupUpdater: React.FC<EconomicGroupUpdaterProps> = ({ visible, on
     useEffect(() => {
         if (initialEconomicGroup && visible) {
             setEconomicGroup({...initialEconomicGroup});
+        } else if (!visible) {
+            clearData();
         }
     }, [initialEconomicGroup, visible]);
 
     useEffect(() => {
-        if (visible && economicGroup && economicGroup.id && economicGroup.organizationIds && economicGroup.organizationIds.length > 0) {
+        if (visible && economicGroup?.id && economicGroup?.organizationIds?.length > 0) {
             loadOrganizations();
-        } else if (visible && (!economicGroup.organizationIds || economicGroup.organizationIds.length === 0)) {
+        } else if (visible) {
             setSelectedOrganizations([]);
         }
-    }, [visible, economicGroup.id]);
+    }, [visible, economicGroup.id, economicGroup.organizationIds]);
 
     const loadOrganizations = async () => {
+        if (!economicGroup.organizationIds || economicGroup.organizationIds.length === 0) {
+            setSelectedOrganizations([]);
+            return;
+        }
         setLoading(true);
         try {
             const response = await OrganizationService.getOrganizationsFromList(economicGroup.organizationIds);
-            setSelectedOrganizations(response.content);
+            setSelectedOrganizations(response.content || []);
         } catch (error) {
             console.error("Erro ao carregar organizações do grupo econômico", error);
+            setSelectedOrganizations([]);
         } finally {
             setLoading(false);
         }
@@ -84,6 +91,7 @@ const EconomicGroupUpdater: React.FC<EconomicGroupUpdaterProps> = ({ visible, on
 
     function clearData() {
         setEconomicGroup(emptyEconomicGroup);
+        setSelectedOrganizations([]);
     }
 
     const handleSave = async () => {
@@ -104,6 +112,8 @@ const EconomicGroupUpdater: React.FC<EconomicGroupUpdaterProps> = ({ visible, on
 
             if (onSaveSuccess)
                 onSaveSuccess(savedGroup);
+            
+            clearData();
             onHide();
         } catch (error: any) {
             toast.current?.show({ severity: 'error', summary: 'Erro', detail: error.message || 'Erro ao salvar grupo econômico', life: 3000 });
