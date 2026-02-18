@@ -13,6 +13,7 @@ import {IClient} from "./ClientStructures";
 import {ClientService} from "./ClientService";
 import ClientDetails from "./ClientDetails";
 import ClientManager from "./ClientManager";
+import ClientUpdater from "./ClientUpdater";
 
 
 const ClientList: React.FC = () => {
@@ -300,17 +301,17 @@ const ClientList: React.FC = () => {
                     }}
                 />
 
-            {/*<OrganizationUpdater*/}
-            {/*    visible={displayUpdater}*/}
-            {/*    organization={clientToEdit}*/}
-            {/*    onHide={() => {*/}
-            {/*        setDisplayUpdater(false);*/}
-            {/*        setClientToEdit(null);*/}
-            {/*    }}*/}
-            {/*    onSave={(updatedOrg) => {*/}
-            {/*        loadClients(0);*/}
-            {/*    }}*/}
-            {/*/>*/}
+            <ClientUpdater
+                visible={displayUpdater}
+                clientInput={clientToEdit}
+                onHide={() => {
+                    setDisplayUpdater(false);
+                    setClientToEdit(null);
+                }}
+                onSave={(updatedOrg) => {
+                    loadClients(0);
+                }}
+            />
 
             </div>
     );
