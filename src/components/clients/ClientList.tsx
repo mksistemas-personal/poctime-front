@@ -105,7 +105,7 @@ const ClientList: React.FC = () => {
             acceptLabel: 'Sim',
             rejectLabel: 'Não',
             acceptClassName: 'p-button-danger',
-            accept: () => deleteOrganization(client.id)
+            accept: () => deleteOrganization(client.clientId)
         });
     };
 

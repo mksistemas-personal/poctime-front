@@ -1,5 +1,6 @@
-import { AuthService } from "../auth/AuthServiceKeycloak";
-import { CommonService } from "../CommonService";
+import {CommonService} from "../CommonService";
+import {CommonApiService} from "../base/CommonApiService";
+import {API_CONFIG} from "../../../config/ApiConfig";
 
 export interface IZipCodeResponse {
     zipCode: string;
@@ -10,18 +11,12 @@ export interface IZipCodeResponse {
 }
 
 export class ZipCodeService {
-    private static readonly API_URL = 'http://localhost:8181/api/zipCodes';
+    private static readonly API_URL = `${API_CONFIG.BASE_URL}/zipCodes`;
 
     static async getZipCode(zipCode: string): Promise<IZipCodeResponse> {
         const cleanZipCode = zipCode.replace(/\D/g, '');
         try {
-            const tokenData = await AuthService.getAccessToken();
-            const response = await fetch(`${this.API_URL}/${cleanZipCode}`, {
-                headers: {
-                    'Authorization': `Bearer ${tokenData.access_token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await CommonApiService.fetchGetData(`${this.API_URL}/${cleanZipCode}`);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
@@ -37,13 +32,7 @@ export class ZipCodeService {
 
     static async getAllZipCodes(): Promise<IZipCodeResponse[]> {
         try {
-            const tokenData = await AuthService.getAccessToken();
-            const response = await fetch(this.API_URL, {
-                headers: {
-                    'Authorization': `Bearer ${tokenData.access_token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await CommonApiService.fetchGetData(this.API_URL);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));

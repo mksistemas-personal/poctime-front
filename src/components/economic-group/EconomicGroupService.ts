@@ -2,9 +2,10 @@ import {CommonApiService} from "../shared/base/CommonApiService";
 import {CommonStructures} from "../shared/base/CommonStructures";
 import {CommonService} from "../shared/CommonService";
 import {IEconomicGroup} from "./EconomicGroupStructures";
+import {API_CONFIG} from "../../config/ApiConfig";
 
 export class EconomicGroupService {
-    private static readonly API_URL = 'http://localhost:8181/api/economic-group';
+    private static readonly API_URL = `${API_CONFIG.BASE_URL}/economic-group`;
 
 
     static async getAllEconomicGroups(page: number = 0, size: number = 10, filters?: string) {

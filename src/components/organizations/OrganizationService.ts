@@ -1,4 +1,3 @@
-import {AuthService} from "../shared/auth/AuthServiceKeycloak";
 import {ISlice} from "../shared/ISlice";
 import {CommonService} from "../shared/CommonService";
 import {CommonStructures} from "../shared/base/CommonStructures";
@@ -9,9 +8,10 @@ import {
     IOrganizationView,
     IOrganizationWithCityProjection
 } from "./OrganizationStructures";
+import {API_CONFIG} from "../../config/ApiConfig";
 
 export class OrganizationService {
-    private static readonly API_URL = 'http://localhost:8181/api/organization'; // Ajuste a URL base conforme necessário
+    private static readonly API_URL = `${API_CONFIG.BASE_URL}/organization`; // Ajuste a URL base conforme necessário
     private static readonly API_ALL_WITH_CITY = `${OrganizationService.API_URL}/projection/all-with-city`;
 
 
@@ -123,14 +123,7 @@ export class OrganizationService {
 
     static async deleteOrganization(id: string): Promise<void> {
         try {
-            const tokenData = await AuthService.getAccessToken();
-            const response = await fetch(`${this.API_URL}/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${tokenData.access_token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await CommonApiService.fetchDeleteData(`${this.API_URL}/${id}`);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));

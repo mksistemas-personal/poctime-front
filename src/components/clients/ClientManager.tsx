@@ -19,7 +19,7 @@ interface ClientManagerProps {
 
 const ClientManager: React.FC<ClientManagerProps> = ({ visible, onHide, onSave }) => {
     const emptyClient: IClient = {
-        id: '',
+        clientId: '',
         clientPerson: { id: '', name: '', document: { type: 'cnpj', identifier: '', country: 'BR', complement: '' } },
         clientEmail: '',
         address: {

@@ -23,7 +23,7 @@ export interface IPerson {
     document: IDocument;
 }
 export interface IClient{
-    id: string;
+    clientId: string;
     clientPerson: IPerson;
     clientEmail: string;
     address: IAddress;

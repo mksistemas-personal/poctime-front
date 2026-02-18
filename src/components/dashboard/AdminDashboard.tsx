@@ -34,6 +34,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
                 return 'Grupos Econômicos';
             case 'totalPersons':
                 return 'Pessoas';
+            case 'totalClients':
+                return 'Clientes';
             default:
                 return key;
         }
@@ -47,6 +49,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
                 return 'pi-sitemap';
             case 'totalPersons':
                 return 'pi-users';
+            case 'totalClients':
+                return 'pi-id-card';
             default:
                 return 'pi-chart-bar';
         }
@@ -60,6 +64,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
                 return 'green';
             case 'totalPersons':
                 return 'orange';
+            case 'totalClients':
+                return 'red';
             default:
                 return 'gray';
         }
@@ -71,6 +77,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
                 return 'organizations';
             case 'totalEconomicGroups':
                 return 'economic-groups';
+            case 'totalClients':
+                return 'clients';
             default:
                 return null;
         }

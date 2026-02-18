@@ -1,3 +1,5 @@
+import {API_CONFIG} from "../../../config/ApiConfig";
+
 export interface IAuthToken {
   access_token: string;
   expires_in: number;
@@ -6,9 +8,9 @@ export interface IAuthToken {
 }
 
 export class AuthService {
-  private static readonly KEYCLOAK_URL = 'http://localhost:9090/realms/poctime-app/protocol/openid-connect/token';
-  private static readonly CLIENT_ID = 'api-backend';
-  private static readonly CLIENT_SECRET = 'uc87VVWr9Um4w2nVJk20gTUfxMFaFFNp'; // CUIDADO: Apenas para testes ou server-side.
+  private static readonly KEYCLOAK_URL = API_CONFIG.KEYCLOAK_URL;
+  private static readonly CLIENT_ID = API_CONFIG.KEYCLOAK_CLIENT_ID;
+  private static readonly CLIENT_SECRET = API_CONFIG.KEYCLOAK_CLIENT_SECRET;
   private static readonly USERNAME = 'poctime-user';
   private static readonly PASSWORD = 'kiniz001';
 

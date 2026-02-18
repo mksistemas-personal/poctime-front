@@ -1,5 +1,6 @@
-import { AuthService } from "../auth/AuthServiceKeycloak";
-import { CommonService } from "../CommonService";
+import {CommonService} from "../CommonService";
+import {CommonApiService} from "../base/CommonApiService";
+import {API_CONFIG} from "../../../config/ApiConfig";
 
 export interface IFederalStateResponse {
     stateName: string;
@@ -7,17 +8,11 @@ export interface IFederalStateResponse {
 }
 
 export class FederalStateService {
-    private static readonly API_URL = 'http://localhost:8181/api/federalStates';
+    private static readonly API_URL = `${API_CONFIG.BASE_URL}/federalStates`;
 
     static async getAllFederalStates(): Promise<IFederalStateResponse[]> {
         try {
-            const tokenData = await AuthService.getAccessToken();
-            const response = await fetch(this.API_URL, {
-                headers: {
-                    'Authorization': `Bearer ${tokenData.access_token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await CommonApiService.fetchGetData(this.API_URL);
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));

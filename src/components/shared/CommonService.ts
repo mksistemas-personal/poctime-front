@@ -31,10 +31,36 @@ export class CommonService {
             'person.document.not.null': 'O documento da pessoa é obrigatório.',
             'person.id.not.found': 'Pessoa não encontrada.',
             'person.document.invalid': 'O documento informado é inválido.',
-            'person.cannot.remove.because.organization': 'Não é possível remover esta pessoa pois ela está vinculada a uma organização.'
+            'person.cannot.remove.because.organization': 'Não é possível remover esta pessoa pois ela está vinculada a uma organização.',
+            'client.person.duplicated': 'Este cliente já está cadastrado.',
+            'client.person.not.found': 'Cliente não encontrado.',
+            'client.person.id.not.null': 'O ID do cliente deve ser nulo.',
+            'client.address.not.null': 'O endereço do cliente é obrigatório.',
+            'client.email.not.blank': 'O e-mail do cliente não pode estar em branco.',
+            'client.email.invalid': 'O e-mail do cliente é inválido.',
+            'client.person.not.null': 'Os dados do cliente são obrigatórios.',
+            'client.email.not.null': 'O e-mail do cliente é obrigatório.',
+            'client.not.found': 'Cliente não encontrado.',
+            'economicgroup.name.not.blank': 'O nome do grupo econômico não pode estar em branco.',
+            'economicgroup.organizations.not.found': 'Organizações não encontradas para o grupo econômico: %s',
+            'economicgroup.already.exists': 'Este grupo econômico já existe.',
+            'economicgroup.not.found': 'Grupo econômico não encontrado.',
+            'economicgroup.remove.organization.ids.not.null': 'Os IDs das organizações a serem removidas não podem ser nulos.',
+            'economicgroup.remove.organization.ids.not.empty': 'A lista de IDs das organizações a serem removidas não pode estar vazia.'
         };
 
-        return errorMessages[errorCode] || defaultMessage;
+        const [key, ...params] = errorCode.split('|');
+        const message = errorMessages[key] || errorMessages[errorCode] || defaultMessage;
+        
+        if (params.length > 0) {
+            let formattedMessage = message;
+            params.forEach(param => {
+                formattedMessage = formattedMessage.replace('%s', param);
+            });
+            return formattedMessage;
+        }
+
+        return message;
     }
 
 }

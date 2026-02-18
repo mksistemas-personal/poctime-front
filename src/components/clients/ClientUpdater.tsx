@@ -18,7 +18,7 @@ interface ClientManagerProps {
 
 const ClientUpdater: React.FC<ClientManagerProps> = ({ visible, onHide, clientInput: initialClient, onSave }) => {
     const emptyClient: IClient = {
-        id: '',
+        clientId: '',
         clientPerson: { id: '', name: '', document: { type: 'cnpj', identifier: '', country: 'BR', complement: '' } },
         clientEmail: '',
         address: {
@@ -134,6 +134,7 @@ const ClientUpdater: React.FC<ClientManagerProps> = ({ visible, onHide, clientIn
 
         try {
             const dataToSave = { ...client };
+            console.log('Dados do cliente antes de salvar:', dataToSave);
             const savedOrg = await ClientService.saveClient(dataToSave);
             if (onSave) {
                 onSave(savedOrg);
