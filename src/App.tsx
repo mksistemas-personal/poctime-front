@@ -14,6 +14,7 @@ import MainLayout from './components/main/MainLayout';
 import AdminDashboard from './components/dashboard/AdminDashboard';
 import OrganizationList from './components/organizations/OrganizationList';
 import EconomicGroupList from './components/economic-group/EconomicGroupList';
+import ClientList from "./components/clients/ClientList";
 
 function App() {
   const [currentPage, setCurrentPage] = useState<string>('dashboard');
@@ -26,6 +27,8 @@ function App() {
         return <OrganizationList />;
       case 'economic-groups':
         return <EconomicGroupList />;
+      case 'clients':
+        return <ClientList />;
       default:
         return <AdminDashboard onNavigate={(page) => setCurrentPage(page)} />;
     }

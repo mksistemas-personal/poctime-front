@@ -40,6 +40,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPag
             icon: 'pi pi-sitemap',
             className: currentPage === 'economic-groups' ? 'p-highlight' : '',
             command: () => onNavigate('economic-groups')
+        },
+        {
+            label: 'Clientes',
+            icon: 'pi pi-id-card',
+            className: currentPage === 'clients' ? 'p-highlight' : '',
+            command: () => onNavigate('clients')
         }
     ], [onNavigate, currentPage]);
 
