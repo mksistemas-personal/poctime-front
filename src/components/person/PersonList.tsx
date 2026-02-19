@@ -10,6 +10,9 @@ import {Toast} from 'primereact/toast';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
 import {IPerson} from "./PersonStructures";
 import {PersonService} from "./PersonService";
+import PersonManager from "./PersonManager";
+import PersonDetails from "./PersonDetails";
+import PersonUpdater from "./PersonUpdater";
 
 
 const PersonList: React.FC = () => {
@@ -252,34 +255,34 @@ const PersonList: React.FC = () => {
                 </div>
             </Panel>
 
-            {/*<ClientDetails*/}
-            {/*    visible={displayDetails}*/}
-            {/*    client={selectedPerson}*/}
-            {/*    onHide={() => {*/}
-            {/*        setDisplayDetails(false);*/}
-            {/*        setSelectedPerson(null);*/}
-            {/*    }}*/}
-            {/*/>*/}
+            <PersonDetails
+                visible={displayDetails}
+                person={selectedPerson}
+                onHide={() => {
+                    setDisplayDetails(false);
+                    setSelectedPerson(null);
+                }}
+            />
 
-            {/*<ClientManager*/}
-            {/*    visible={displayManager}*/}
-            {/*    onHide={() => setDisplayManager(false)}*/}
-            {/*    onSave={(newOrg) => {*/}
-            {/*            loadPeople(0);*/}
-            {/*        }}*/}
-            {/*    />*/}
+            <PersonManager
+                visible={displayManager}
+                onHide={() => setDisplayManager(false)}
+                onSave={() => {
+                        loadPeople(0);
+                    }}
+                />
 
-            {/*<ClientUpdater*/}
-            {/*    visible={displayUpdater}*/}
-            {/*    clientInput={personToEdit}*/}
-            {/*    onHide={() => {*/}
-            {/*        setDisplayUpdater(false);*/}
-            {/*        setPersonToEdit(null);*/}
-            {/*    }}*/}
-            {/*    onSave={(updatedOrg) => {*/}
-            {/*        loadPeople(0);*/}
-            {/*    }}*/}
-            {/*/>*/}
+            <PersonUpdater
+                visible={displayUpdater}
+                personToUpdate={personToEdit}
+                onHide={() => {
+                    setDisplayUpdater(false);
+                    setPersonToEdit(null);
+                }}
+                onSave={(updatedOrg) => {
+                    loadPeople(0);
+                }}
+            />
 
             </div>
     );

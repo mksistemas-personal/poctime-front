@@ -30,28 +30,41 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPag
             command: () => onNavigate('dashboard')
         },
         {
-            label: 'Pessoas',
-            icon: 'pi pi-user',
-            className: currentPage === 'people' ? 'p-highlight' : '',
-            command: () => onNavigate('people')
-        },
-        {
-            label: 'Organizações',
-            icon: 'pi pi-building',
-            className: currentPage === 'organizations' ? 'p-highlight' : '',
-            command: () => onNavigate('organizations')
-        },
-        {
-            label: 'Grupos economicos',
-            icon: 'pi pi-sitemap',
-            className: currentPage === 'economic-groups' ? 'p-highlight' : '',
-            command: () => onNavigate('economic-groups')
-        },
-        {
-            label: 'Clientes',
-            icon: 'pi pi-id-card',
-            className: currentPage === 'clients' ? 'p-highlight' : '',
-            command: () => onNavigate('clients')
+            label: 'Cadastros',
+            icon: 'pi pi-list',
+            items: [
+                [
+                    {
+                        label: 'Cadastro Geral',
+                        items: [
+                            {
+                                label: 'Pessoas',
+                                icon: 'pi pi-user',
+                                className: currentPage === 'people' ? 'p-highlight' : '',
+                                command: () => onNavigate('people')
+                            },
+                            {
+                                label: 'Organizações',
+                                icon: 'pi pi-building',
+                                className: currentPage === 'organizations' ? 'p-highlight' : '',
+                                command: () => onNavigate('organizations')
+                            },
+                            {
+                                label: 'Grupos econômicos',
+                                icon: 'pi pi-sitemap',
+                                className: currentPage === 'economic-groups' ? 'p-highlight' : '',
+                                command: () => onNavigate('economic-groups')
+                            },
+                            {
+                                label: 'Clientes',
+                                icon: 'pi pi-id-card',
+                                className: currentPage === 'clients' ? 'p-highlight' : '',
+                                command: () => onNavigate('clients')
+                            }
+                        ]
+                    }
+                ]
+            ]
         }
     ], [onNavigate, currentPage]);
 
@@ -109,10 +122,10 @@ return (
             </div>
         </header>
 
-        <div className="flex flex-grow-1 min-h-0 overflow-hidden" style={{ height: 'calc(100vh - 4rem)', position: 'relative' }}>
+        <div className="flex flex-grow-1 min-h-0" style={{ height: 'calc(100vh - 4rem)', position: 'relative' }}>
             <aside
                 className={`flex flex-column surface-section border-right-1 surface-border shadow-1 transition-all transition-duration-300 ${sidebarVisible ? 'w-14rem' : 'w-0 p-0 border-none'}`}
-                style={{ zIndex: 10, height: '100%', overflowY: 'auto' }}
+                style={{ zIndex: 10, height: '100%' }}
             >
                 {sidebarVisible && (
                     <MegaMenu 
@@ -126,7 +139,7 @@ return (
             </aside>
 
             {/* Área de Conteúdo */}
-            <main className="flex-1 p-3 md:p-5 flex flex-column min-h-0">
+            <main className="flex-1 p-3 md:p-5 flex flex-column min-h-0 overflow-y-auto">
                 {children}
             </main>
         </div>
