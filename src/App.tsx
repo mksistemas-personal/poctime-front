@@ -15,6 +15,7 @@ import AdminDashboard from './components/dashboard/AdminDashboard';
 import OrganizationList from './components/organizations/OrganizationList';
 import EconomicGroupList from './components/economic-group/EconomicGroupList';
 import ClientList from "./components/clients/ClientList";
+import PersonList from "./components/person/PersonList";
 
 function App() {
   const [currentPage, setCurrentPage] = useState<string>('dashboard');
@@ -23,6 +24,8 @@ function App() {
     switch (currentPage) {
       case 'dashboard':
         return <AdminDashboard onNavigate={(page) => setCurrentPage(page)} />;
+      case 'people':
+        return <PersonList />;
       case 'organizations':
         return <OrganizationList />;
       case 'economic-groups':

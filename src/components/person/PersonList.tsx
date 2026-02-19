@@ -7,31 +7,24 @@ import {InputText} from 'primereact/inputtext';
 import {Accordion, AccordionTab} from 'primereact/accordion';
 import {ConfirmDialog, confirmDialog} from 'primereact/confirmdialog';
 import {Toast} from 'primereact/toast';
-import FederalStateSelector from '../shared/states/FederalStateSelector';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
-import {IClient} from "./ClientStructures";
-import {ClientService} from "./ClientService";
-import ClientDetails from "./ClientDetails";
-import ClientManager from "./ClientManager";
-import ClientUpdater from "./ClientUpdater";
+import {IPerson} from "./PersonStructures";
+import {PersonService} from "./PersonService";
 
 
-const ClientList: React.FC = () => {
-    const [clients, setClients] = useState<IClient[]>([]);
+const PersonList: React.FC = () => {
+    const [people, setPeople] = useState<IPerson[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [page, setPage] = useState<number>(0);
     const [isLastPage, setIsLastPage] = useState<boolean>(false);
-    const [selectedClient, setSelectedClient] = useState<IClient | null>(null);
+    const [selectedPerson, setSelectedPerson] = useState<IPerson | null>(null);
     const [displayDetails, setDisplayDetails] = useState<boolean>(false);
     const [displayManager, setDisplayManager] = useState<boolean>(false);
     const [displayUpdater, setDisplayUpdater] = useState<boolean>(false);
-    const [clientToEdit, setClientToEdit] = useState<IClient | null>(null);
+    const [personToEdit, setPersonToEdit] = useState<IPerson | null>(null);
     const toast = React.useRef<Toast>(null);
     const [filters, setFilters] = useState<any>({
-        name: '',
-        street: '',
-        city: '',
-        stateCode: ''
+        name: ''
     });
     const loadingRef = React.useRef(loading);
     const isLastPageRef = React.useRef(isLastPage);
@@ -46,26 +39,26 @@ const ClientList: React.FC = () => {
 
     const ROWS_PER_PAGE = 10;
 
-    const loadClients = useCallback(async (pageNumber: number, currentFilters: any = filters) => {
+    const loadPeople = useCallback(async (pageNumber: number, currentFilters: any = filters) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
-            const data = await ClientService.getClients(pageNumber, ROWS_PER_PAGE, currentFilters);
+            const data = await PersonService.getPeople(pageNumber, ROWS_PER_PAGE, currentFilters);
 
             // Garantir que estamos pegando o objeto de organização, caso venha envolvido
             const content = data.content.map((item: any) => {
-                if (item.client) {
-                    return { ...item.client, id: item.client.id  };
+                if (item.person) {
+                    return { ...item.person, id: item.person.id  };
                 }
                 return { ...item, id: item.id };
             });
 
             // Acumula os dados se não for a primeira página
-            setClients(prev => pageNumber === 0 ? content : [...prev, ...content]);
+            setPeople(prev => pageNumber === 0 ? content : [...prev, ...content]);
             setIsLastPage(data.last);
             setPage(pageNumber);
         } catch (error) {
-            console.error("Erro ao carregar clientes:", error);
+            console.error("Erro ao carregar pessoas:", error);
         } finally {
             setLoading(false);
         }
@@ -73,8 +66,8 @@ const ClientList: React.FC = () => {
 
     // Carrega a primeira página ao iniciar
     useEffect(() => {
-        loadClients(0);
-    }, [loadClients]);
+        loadPeople(0);
+    }, [loadPeople]);
 
 
     const onFilterChange = (e: any, field: string) => {
@@ -83,55 +76,52 @@ const ClientList: React.FC = () => {
     };
 
     const applyFilters = () => {
-        loadClients(0, filters);
+        loadPeople(0, filters);
     };
 
     const clearFilters = () => {
         const emptyFilters = {
-            name: '',
-            street: '',
-            city: '',
-            stateCode: ''
+            name: ''
         };
         setFilters(emptyFilters);
-        loadClients(0, emptyFilters);
+        loadPeople(0, emptyFilters);
     };
 
-    const confirmDelete = (client: IClient) => {
+    const confirmDelete = (person: IPerson) => {
         confirmDialog({
-            message: `Deseja realmente excluir o cliente "${client.clientPerson.name}"?`,
+            message: `Deseja realmente excluir da pessoa "${person.name}"?`,
             header: 'Confirmação de Exclusão',
             icon: 'pi pi-exclamation-triangle',
             acceptLabel: 'Sim',
             rejectLabel: 'Não',
             acceptClassName: 'p-button-danger',
-            accept: () => deleteClient(client.clientId)
+            accept: () => deletePerson(person.id)
         });
     };
 
-    const deleteClient = async (id: string) => {
+    const deletePerson = async (id: string) => {
         try {
             setLoading(true);
-            await ClientService.deleteClient(id);
-            toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'Cliente excluído com sucesso', life: 3000 });
-            loadClients(0); // Recarrega a lista
+            await PersonService.deletePerson(id);
+            toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'Pessoa excluída com sucesso', life: 3000 });
+            loadPeople(0); // Recarrega a lista
         } catch (error: any) {
-            toast.current?.show({ severity: 'error', summary: 'Erro', detail: error.message || 'Erro ao excluir cliente', life: 3000 });
+            toast.current?.show({ severity: 'error', summary: 'Erro', detail: error.message || 'Erro ao excluir pessoa', life: 3000 });
         } finally {
             setLoading(false);
         }
     };
 
-    const cnpjBodyTemplate = (rowData: IClient) => {
-        return <DocumentDisplay type="CNPJ" value={rowData.clientPerson.document.identifier} />;
+    const cnpjBodyTemplate = (rowData: IPerson) => {
+        return <DocumentDisplay type="CNPJ" value={rowData.document.identifier} />;
     };
 
-    const cpfBodyTemplate = (rowData: IClient) => {
-        return <DocumentDisplay type="CPF" value={rowData.clientPerson.document.identifier} />;
+    const cpfBodyTemplate = (rowData: IPerson) => {
+        return <DocumentDisplay type="CPF" value={rowData.document.identifier} />;
     };
 
-    const documentBodyTemplate = (rowData: IClient) => {
-        return rowData.clientPerson.document.type === 'cnpj' ? cnpjBodyTemplate(rowData) : cpfBodyTemplate(rowData);
+    const documentBodyTemplate = (rowData: IPerson) => {
+        return rowData.document.type === 'cnpj' ? cnpjBodyTemplate(rowData) : cpfBodyTemplate(rowData);
     };
 
     // Rodapé para controle de carregamento manual/automático
@@ -141,19 +131,19 @@ const ClientList: React.FC = () => {
                 <Button 
                     type="button" 
                     icon="pi pi-plus" 
-                    label="Carregar mais clientes"
-                    onClick={() => loadClients(page + 1)}
+                    label="Carregar mais pessoas"
+                    onClick={() => loadPeople(page + 1)}
                     loading={loading}
                     severity="success" rounded
                     size="small"
                 />
             ) : (
-                <span className="text-500 italic py-2">Todas os clientes foram carregados</span>
+                <span className="text-500 italic py-2">Todas as pessoas foram carregados</span>
             )}
         </div>
     );
 
-    const actionBodyTemplate = (rowData: IClient) => {
+    const actionBodyTemplate = (rowData: IPerson) => {
         return (
             <div className="flex gap-1">
                 <Button
@@ -162,7 +152,7 @@ const ClientList: React.FC = () => {
                     text
                     severity="info"
                     onClick={() => {
-                        setSelectedClient(rowData);
+                        setSelectedPerson(rowData);
                         setDisplayDetails(true);
                     }}
                     tooltip="Ver detalhes"
@@ -175,7 +165,7 @@ const ClientList: React.FC = () => {
                     text
                     severity="warning"
                     onClick={() => {
-                        setClientToEdit(rowData);
+                        setPersonToEdit(rowData);
                         setDisplayUpdater(true);
                     }}
                     tooltip="Editar cliente"
@@ -199,9 +189,9 @@ const ClientList: React.FC = () => {
     const headerTemplate = (options: any) => {
         return (
             <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%', padding: '0.5rem 1rem' }}>
-                <span className="text-lg font-bold">Gerenciamento dos Clientes</span>
+                <span className="text-lg font-bold">Gerenciamento de Pessoas</span>
                 <Button
-                    label="Novo Cliente"
+                    label="Nova Pessoa"
                     icon="pi pi-plus"
                     severity="success"
                     rounded
@@ -226,28 +216,8 @@ const ClientList: React.FC = () => {
                     }>
                         <div className="p-fluid grid row-gap-2">
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="name" className="text-xs font-bold text-left block">Nome do Cliente</label>
-                                <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Cliente..." />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="clientEmail" className="text-xs font-bold text-left block">E-mail do Cliente</label>
-                                <InputText id="clientEmail" value={filters.clientEmail} onChange={(e) => onFilterChange(e, 'clientEmail')} className="p-inputtext-sm" />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="street" className="text-xs font-bold text-left block">Rua</label>
-                                <InputText id="street" value={filters.street} onChange={(e) => onFilterChange(e, 'street')} className="p-inputtext-sm" />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="city" className="text-xs font-bold text-left block">Cidade</label>
-                                <InputText id="city" value={filters.city} onChange={(e) => onFilterChange(e, 'city')} className="p-inputtext-sm" />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="stateCode" className="text-xs font-bold block text-left">UF</label>
-                                <FederalStateSelector 
-                                    value={filters.stateCode} 
-                                    onChange={(val) => setFilters((prev: any) => ({ ...prev, stateCode: val }))}
-                                    className="w-full p-inputtext-sm"
-                                />
+                                <label htmlFor="name" className="text-xs font-bold text-left block">Nome da Pessoa</label>
+                                <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Pessoa..." />
                             </div>
                             <div className="sm:col-6 flex justify-content-end gap-2 mt-0 align-items-end" style={{ width: 'auto', marginLeft: 'auto' }}>
                                 <div className="flex gap-2">
@@ -261,10 +231,10 @@ const ClientList: React.FC = () => {
 
                 <div className="flex-1 min-h-0">
                     <DataTable 
-                        value={clients}
+                        value={people}
                         selectionMode="single"
-                        selection={selectedClient}
-                        onSelectionChange={(e) => setSelectedClient(e.value as IClient)}
+                        selection={selectedPerson}
+                        onSelectionChange={(e) => setSelectedPerson(e.value as IPerson)}
                         dataKey="id"
                         loading={loading}
                         footer={footer}
@@ -273,48 +243,46 @@ const ClientList: React.FC = () => {
                         className="p-datatable-sm h-full flex-1 text-sm"
                         stripedRows
                         tableStyle={{ minWidth: '80rem' }}
-                        emptyMessage="Nenhum cliente encontrada."
+                        emptyMessage="Nenhuma pessoa encontrada."
                     >
-                        <Column field="clientPerson.name" header="Nome" sortable bodyClassName="font-bold text-primary py-1" headerClassName="text-sm py-2"/>
-                        <Column header="Doc." body={documentBodyTemplate} bodyClassName="py-1" headerClassName="text-sm py-2" />
-                        <Column field="clientEmail" header="E-mail" bodyClassName="py-1" headerClassName="text-sm py-2" />
-                        <Column field="address.city" header="Cidade" sortable bodyClassName="py-1" headerClassName="text-sm py-2" />
+                        <Column field="name" header="Nome" sortable bodyClassName="font-bold text-primary py-1" headerClassName="text-sm py-2"/>
+                        <Column header="Doc." body={documentBodyTemplate} sortable bodyClassName="py-1" headerClassName="text-sm py-2" />
                         <Column body={actionBodyTemplate} exportable={false} style={{ minWidth: '8rem' }} bodyClassName="py-1 text-right" headerClassName="py-2" />
                     </DataTable>
                 </div>
             </Panel>
 
-            <ClientDetails
-                visible={displayDetails}
-                client={selectedClient}
-                onHide={() => {
-                    setDisplayDetails(false);
-                    setSelectedClient(null);
-                }}
-            />
+            {/*<ClientDetails*/}
+            {/*    visible={displayDetails}*/}
+            {/*    client={selectedPerson}*/}
+            {/*    onHide={() => {*/}
+            {/*        setDisplayDetails(false);*/}
+            {/*        setSelectedPerson(null);*/}
+            {/*    }}*/}
+            {/*/>*/}
 
-            <ClientManager
-                visible={displayManager}
-                onHide={() => setDisplayManager(false)}
-                onSave={(newOrg) => {
-                        loadClients(0);
-                    }}
-                />
+            {/*<ClientManager*/}
+            {/*    visible={displayManager}*/}
+            {/*    onHide={() => setDisplayManager(false)}*/}
+            {/*    onSave={(newOrg) => {*/}
+            {/*            loadPeople(0);*/}
+            {/*        }}*/}
+            {/*    />*/}
 
-            <ClientUpdater
-                visible={displayUpdater}
-                clientInput={clientToEdit}
-                onHide={() => {
-                    setDisplayUpdater(false);
-                    setClientToEdit(null);
-                }}
-                onSave={(updatedOrg) => {
-                    loadClients(0);
-                }}
-            />
+            {/*<ClientUpdater*/}
+            {/*    visible={displayUpdater}*/}
+            {/*    clientInput={personToEdit}*/}
+            {/*    onHide={() => {*/}
+            {/*        setDisplayUpdater(false);*/}
+            {/*        setPersonToEdit(null);*/}
+            {/*    }}*/}
+            {/*    onSave={(updatedOrg) => {*/}
+            {/*        loadPeople(0);*/}
+            {/*    }}*/}
+            {/*/>*/}
 
             </div>
     );
 };
 
-export default ClientList;
+export default PersonList;

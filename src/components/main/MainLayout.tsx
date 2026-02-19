@@ -30,6 +30,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPag
             command: () => onNavigate('dashboard')
         },
         {
+            label: 'Pessoas',
+            icon: 'pi pi-user',
+            className: currentPage === 'people' ? 'p-highlight' : '',
+            command: () => onNavigate('people')
+        },
+        {
             label: 'Organizações',
             icon: 'pi pi-building',
             className: currentPage === 'organizations' ? 'p-highlight' : '',
