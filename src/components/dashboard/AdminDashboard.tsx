@@ -6,7 +6,7 @@ interface AdminDashboardProps {
     onNavigate?: (page: string) => void;
 }
 
-const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
+const AdminDashboard: React.FC<AdminDashboardProps> = ({onNavigate}) => {
     const [totals, setTotals] = useState<IDashboardTotals | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -79,6 +79,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
                 return 'economic-groups';
             case 'totalClients':
                 return 'clients';
+            case 'totalPersons':
+                return 'people';
             default:
                 return null;
         }
@@ -99,7 +101,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
 
                     return (
                         <div key={key} className="col-12 md:col-6 lg:col-4">
-                            <Card 
+                            <Card
                                 className={`shadow-1 border-none border-left-3 border-${color}-500 cursor-pointer hover:shadow-4 transition-all transition-duration-300 surface-card`}
                                 onClick={() => hasLink && onNavigate(targetPage)}
                             >
@@ -110,12 +112,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) => {
                                             {loading ? <i className="pi pi-spin pi-spinner text-xl"></i> : value}
                                         </div>
                                         <div className="mt-2">
-                                            <span className={`text-${color}-500 font-medium text-xs bg-${color}-50 px-2 py-1 border-round`}>
+                                            <span
+                                                className={`text-${color}-500 font-medium text-xs bg-${color}-50 px-2 py-1 border-round`}>
                                                 Total registrado
                                             </span>
                                         </div>
                                     </div>
-                                    <div className={`flex align-items-center justify-content-center bg-${color}-50 border-round-xl`} style={{width: '4rem', height: '4rem'}}>
+                                    <div
+                                        className={`flex align-items-center justify-content-center bg-${color}-50 border-round-xl`}
+                                        style={{width: '4rem', height: '4rem'}}>
                                         <i className={`pi ${icon} text-${color}-600 text-3xl`}></i>
                                     </div>
                                 </div>

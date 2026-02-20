@@ -1,52 +1,11 @@
 export class CommonService {
     static getErrorMessage(errorCode: string, defaultMessage: string = 'Ocorreu um erro inesperado. Por favor, tente novamente.'): string {
         const errorMessages: { [key: string]: string } = {
-            'organization.person.duplicated': 'Esta organização já está cadastrada.',
-            'organization.person.not.found': 'Pessoa da organização não encontrada.',
-            'organization.responsible.person.not.found': 'Responsável não encontrado.',
-            'organization.person.id.not.null': 'O ID da pessoa da organização deve ser nulo.',
-            'organization.address.not.null': 'O endereço é obrigatório.',
-            'organization.responsible.person.id.not.null': 'O ID do responsável deve ser nulo.',
-            'organization.responsible.email.not.blank': 'O e-mail do responsável não pode estar em branco.',
-            'organization.responsible.email.invalid': 'O e-mail do responsável é inválido.',
-            'organization.person.not.null': 'A pessoa da organização é obrigatória.',
-            'organization.responsible.person.not.null': 'O responsável pela organização é obrigatório.',
-            'organization.responsible.email.not.null': 'O e-mail do responsável é obrigatório.',
-            'organization.country.responsible.invalid': 'O país do responsável é inválido.',
-            'organization.person.country.wrong.type': 'Tipo de país da pessoa da organização está incorreto.',
-            'organization.responsible.person.country.wrong.type': 'Tipo de país do responsável está incorreto.',
-            'organization.not.found': 'Organização não encontrada.',
-            'address.street.required': 'A rua é obrigatória.',
-            'address.neighborhood.required': 'O bairro é obrigatório.',
-            'address.city.required': 'A cidade é obrigatória.',
-            'address.statecode.invalid': 'O código do estado é inválido.',
-            'address.state.invalid': 'O estado é inválido.',
-            'address.country.required': 'O país é obrigatório.',
-            'address.country.invalid': 'O país é inválido.',
-            'address.zipcode.required': 'O CEP é obrigatório.',
-            'address.zipcode.invalid': 'O CEP é inválido.',
-            'person.name.not.null': 'O nome da pessoa é obrigatório.',
-            'person.duplicated': 'Esta pessoa já está cadastrada.',
-            'person.name.not.blank': 'O nome da pessoa não pode estar em branco.',
-            'person.document.not.null': 'O documento da pessoa é obrigatório.',
-            'person.id.not.found': 'Pessoa não encontrada.',
-            'person.document.invalid': 'O documento informado é inválido.',
-            'person.cannot.remove.because.organization': 'Não é possível remover esta pessoa pois ela está vinculada a uma organização.',
-            'client.person.duplicated': 'Este cliente já está cadastrado.',
-            'client.person.not.found': 'Cliente não encontrado.',
-            'client.person.id.not.null': 'O ID do cliente deve ser nulo.',
-            'client.address.not.null': 'O endereço do cliente é obrigatório.',
-            'client.email.not.blank': 'O e-mail do cliente não pode estar em branco.',
-            'client.email.invalid': 'O e-mail do cliente é inválido.',
-            'client.person.not.null': 'Os dados do cliente são obrigatórios.',
-            'client.email.not.null': 'O e-mail do cliente é obrigatório.',
-            'client.not.found': 'Cliente não encontrado.',
-            'economicgroup.name.not.blank': 'O nome do grupo econômico não pode estar em branco.',
-            'economicgroup.organizations.not.found': 'Organizações não encontradas para o grupo econômico: %s',
-            'economicgroup.already.exists': 'Este grupo econômico já existe.',
-            'economicgroup.not.found': 'Grupo econômico não encontrado.',
-            'economicgroup.remove.organization.ids.not.null': 'Os IDs das organizações a serem removidas não podem ser nulos.',
-            'economicgroup.remove.organization.ids.not.empty': 'A lista de IDs das organizações a serem removidas não pode estar vazia.'
+            ...this.getOrganizationMessages(),
+            ...this.getAddressMessages(),
+            ...this.getPersonMessages(),
+            ...this.getClientMessages(),
+            ...this.getEconomicGroupMessages()
         };
 
         const [key, ...params] = errorCode.split('|');
@@ -63,4 +22,75 @@ export class CommonService {
         return message;
     }
 
+    private static getOrganizationMessages(): { [key: string]: string } {
+        return {
+            'organization.person.duplicated': 'Esta organização já está cadastrada.',
+            'organization.person.not.found': 'Pessoa da organização não encontrada.',
+            'organization.responsible.person.not.found': 'Responsável não encontrado.',
+            'organization.person.id.not.null': 'O ID da pessoa da organização deve ser nulo.',
+            'organization.address.not.null': 'O endereço é obrigatório.',
+            'organization.responsible.person.id.not.null': 'O ID do responsável deve ser nulo.',
+            'organization.responsible.email.not.blank': 'O e-mail do responsável não pode estar em branco.',
+            'organization.responsible.email.invalid': 'O e-mail do responsável é inválido.',
+            'organization.person.not.null': 'A pessoa da organização é obrigatória.',
+            'organization.responsible.person.not.null': 'O responsável pela organização é obrigatório.',
+            'organization.responsible.email.not.null': 'O e-mail do responsável é obrigatório.',
+            'organization.country.responsible.invalid': 'O país do responsável é inválido.',
+            'organization.person.country.wrong.type': 'Tipo de país da pessoa da organização está incorreto.',
+            'organization.responsible.person.country.wrong.type': 'Tipo de país do responsável está incorreto.',
+            'organization.not.found': 'Organização não encontrada.'
+        };
+    }
+
+    private static getAddressMessages(): { [key: string]: string } {
+        return {
+            'address.street.required': 'A rua é obrigatória.',
+            'address.neighborhood.required': 'O bairro é obrigatório.',
+            'address.city.required': 'A cidade é obrigatória.',
+            'address.statecode.invalid': 'O código do estado é inválido.',
+            'address.state.invalid': 'O estado é inválido.',
+            'address.country.required': 'O país é obrigatório.',
+            'address.country.invalid': 'O país é inválido.',
+            'address.zipcode.required': 'O CEP é obrigatório.',
+            'address.zipcode.invalid': 'O CEP é inválido.'
+        };
+    }
+
+    private static getPersonMessages(): { [key: string]: string } {
+        return {
+            'person.name.not.null': 'O nome da pessoa é obrigatório.',
+            'person.duplicated': 'Esta pessoa já está cadastrada.',
+            'person.name.not.blank': 'O nome da pessoa não pode estar em branco.',
+            'person.document.not.null': 'O documento da pessoa é obrigatório.',
+            'person.id.not.found': 'Pessoa não encontrada.',
+            'person.document.invalid': 'O documento informado é inválido.',
+            'person.cannot.remove.because.organization': 'Não é possível remover esta pessoa pois ela está vinculada a uma organização.',
+            'person.cannot.remove.because.client': 'Não é possível remover esta pessoa pois ela está vinculada a um cliente.'
+        };
+    }
+
+    private static getClientMessages(): { [key: string]: string } {
+        return {
+            'client.person.duplicated': 'Este cliente já está cadastrado.',
+            'client.person.not.found': 'Cliente não encontrado.',
+            'client.person.id.not.null': 'O ID do cliente deve ser nulo.',
+            'client.address.not.null': 'O endereço do cliente é obrigatório.',
+            'client.email.not.blank': 'O e-mail do cliente não pode estar em branco.',
+            'client.email.invalid': 'O e-mail do cliente é inválido.',
+            'client.person.not.null': 'Os dados do cliente são obrigatórios.',
+            'client.email.not.null': 'O e-mail do cliente é obrigatório.',
+            'client.not.found': 'Cliente não encontrado.'
+        };
+    }
+
+    private static getEconomicGroupMessages(): { [key: string]: string } {
+        return {
+            'economicgroup.name.not.blank': 'O nome do grupo econômico não pode estar em branco.',
+            'economicgroup.organizations.not.found': 'Organizações não encontradas para o grupo econômico: %s',
+            'economicgroup.already.exists': 'Este grupo econômico já existe.',
+            'economicgroup.not.found': 'Grupo econômico não encontrado.',
+            'economicgroup.remove.organization.ids.not.null': 'Os IDs das organizações a serem removidas não podem ser nulos.',
+            'economicgroup.remove.organization.ids.not.empty': 'A lista de IDs das organizações a serem removidas não pode estar vazia.'
+        };
+    }
 }
