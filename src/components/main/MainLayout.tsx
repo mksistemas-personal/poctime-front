@@ -15,6 +15,24 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPage}) => {
     const [selectedOrg, setSelectedOrg] = useState(null);
     const [sidebarVisible, setSidebarVisible] = useState(true);
+    const [selectedTheme, setSelectedTheme] = useState('lara-light-blue');
+
+    const themes = [
+        { name: 'Lara Light Blue', code: 'lara-light-blue' },
+        { name: 'Lara Dark Blue', code: 'lara-dark-blue' },
+        { name: 'Saga Orange', code: 'saga-orange' },
+        { name: 'Material Dark Indigo', code: 'md-dark-indigo' }
+    ];
+
+    const onThemeChange = (e: { value: string }) => {
+        const theme = e.value;
+        const themeLink = document.getElementById('theme-link') as HTMLLinkElement;
+
+        if (themeLink) {
+            themeLink.href = `/themes/${theme}/theme.css`;
+            setSelectedTheme(theme);
+        }
+    };
 
     // Mock de organizações para o seletor
     const organizations = [
@@ -84,18 +102,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPag
 
     const endContent = (
         <div className="flex align-items-center gap-3">
-            {/* Seletor de Organização */}
-            <span className="p-input-icon-left hidden md:block">
-                        <i className="pi pi-building mr-2"/>
-                        <Dropdown
-                            value={selectedOrg}
-                            options={organizations}
-                            onChange={(e) => setSelectedOrg(e.value)}
-                            optionLabel="name"
-                            placeholder="Organização"
-                            className="w-full md:w-20rem border-none bg-gray-100"
-                        />
-                    </span>
+
+            <Dropdown
+                value={selectedTheme}
+                options={themes}
+                onChange={onThemeChange}
+                optionLabel="name"
+                optionValue="code"
+                placeholder="Tema"
+                className="w-12rem border-none bg-gray-100"
+            />
+
+            <div className="border-left-1 surface-border h-2rem mx-2"></div>
+
             {/* Ações de Usuário */}
             <Button icon="pi pi-bell" className="p-button-rounded p-button-text p-button-secondary"/>
             <Button icon="pi pi-cog" className="p-button-rounded p-button-text p-button-secondary"/>
