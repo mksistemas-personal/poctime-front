@@ -134,6 +134,11 @@ return (
                         breakpoint="960px"
                         className="border-none w-full surface-section"
                         style={{ height: 'auto' }}
+                        pt={{
+                            menuitem: { className: 'white-space-nowrap' },
+                            action: { className: 'white-space-nowrap' },
+                            label: { className: 'white-space-nowrap' }
+                        }}
                     />
                 )}
             </aside>

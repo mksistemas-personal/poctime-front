@@ -27,7 +27,12 @@ const PersonList: React.FC = () => {
     const [personToEdit, setPersonToEdit] = useState<IPerson | null>(null);
     const toast = React.useRef<Toast>(null);
     const [filters, setFilters] = useState<any>({
-        name: ''
+        name: '',
+        identifier: ''
+    });
+    const [appliedFilters, setAppliedFilters] = useState<any>({
+        name: '',
+        identifier: ''
     });
     const loadingRef = React.useRef(loading);
     const isLastPageRef = React.useRef(isLastPage);
@@ -42,7 +47,7 @@ const PersonList: React.FC = () => {
 
     const ROWS_PER_PAGE = 10;
 
-    const loadPeople = useCallback(async (pageNumber: number, currentFilters: any = filters) => {
+    const loadPeople = useCallback(async (pageNumber: number, currentFilters: any = appliedFilters) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
@@ -65,7 +70,7 @@ const PersonList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, [appliedFilters]);
 
     // Carrega a primeira página ao iniciar
     useEffect(() => {
@@ -79,15 +84,16 @@ const PersonList: React.FC = () => {
     };
 
     const applyFilters = () => {
-        loadPeople(0, filters);
+        setAppliedFilters(filters);
     };
 
     const clearFilters = () => {
         const emptyFilters = {
-            name: ''
+            name: '',
+            identifier: ''
         };
         setFilters(emptyFilters);
-        loadPeople(0, emptyFilters);
+        setAppliedFilters(emptyFilters);
     };
 
     const confirmDelete = (person: IPerson) => {
@@ -107,7 +113,7 @@ const PersonList: React.FC = () => {
             setLoading(true);
             await PersonService.deletePerson(id);
             toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'Pessoa excluída com sucesso', life: 3000 });
-            loadPeople(0); // Recarrega a lista
+            loadPeople(0, appliedFilters); // Recarrega a lista
         } catch (error: any) {
             toast.current?.show({ severity: 'error', summary: 'Erro', detail: error.message || 'Erro ao excluir pessoa', life: 3000 });
         } finally {
@@ -222,6 +228,10 @@ const PersonList: React.FC = () => {
                                 <label htmlFor="name" className="text-xs font-bold text-left block">Nome da Pessoa</label>
                                 <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Pessoa..." />
                             </div>
+                            <div className="field sm:col-6 md:col-2 mb-0">
+                                <label htmlFor="identifier" className="text-xs font-bold text-left block">Documento</label>
+                                <InputText id="identifier" value={filters.identifier} onChange={(e) => onFilterChange(e, 'identifier')} className="p-inputtext-sm" placeholder="CPF/CNPJ..." />
+                            </div>
                             <div className="sm:col-6 flex justify-content-end gap-2 mt-0 align-items-end" style={{ width: 'auto', marginLeft: 'auto' }}>
                                 <div className="flex gap-2">
                                     <Button label="Limpar" icon="pi pi-filter-slash" outlined onClick={clearFilters} severity="secondary" size="small" rounded style={{ width: 'auto' }} />
@@ -268,7 +278,7 @@ const PersonList: React.FC = () => {
                 visible={displayManager}
                 onHide={() => setDisplayManager(false)}
                 onSave={() => {
-                        loadPeople(0);
+                        loadPeople(0, appliedFilters);
                     }}
                 />
 
@@ -280,7 +290,7 @@ const PersonList: React.FC = () => {
                     setPersonToEdit(null);
                 }}
                 onSave={(updatedOrg) => {
-                    loadPeople(0);
+                    loadPeople(0, appliedFilters);
                 }}
             />
 
