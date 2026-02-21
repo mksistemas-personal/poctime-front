@@ -142,6 +142,13 @@ const EconomicGroupUpdater: React.FC<EconomicGroupUpdaterProps> = ({ visible, on
         onHide();
     };
 
+    const footer = (
+        <div className="flex justify-content-end gap-2 mt-4">
+            <Button label="Cancelar" icon="pi pi-times" outlined onClick={handleCancel} rounded size="small" className="p-button-secondary"/>
+            <Button label="Salvar" icon="pi pi-check" onClick={handleSave} rounded size="small"/>
+        </div>
+    );
+
     return (
         <>
             <Toast ref={toast} />
@@ -149,51 +156,52 @@ const EconomicGroupUpdater: React.FC<EconomicGroupUpdaterProps> = ({ visible, on
                 visible={visible} 
                 onHide={handleCancel}
                 position="right" 
-                style={{ width: '40rem' }}
+                style={{ width: '35rem' }}
                 header={<h4 className="m-0">Editar Grupo Econômico</h4>}
                 className="p-sidebar-sm"
             >
-                <div className="grid mt-2">
-                    <div className="col-12 field">
-                        <label htmlFor="name" className="block text-sm font-bold mb-2">Nome*</label>
-                        <InputText 
-                            id="name" 
-                            value={economicGroup.name}
-                            onChange={(e) => setEconomicGroup({...economicGroup, name: e.target.value})} 
-                            className="w-full p-inputtext-sm" 
-                            placeholder="Digite o nome do grupo"
-                        />
+                <div className="p-fluid grid mt-1 w-full">
+                    <div className="col-12 py-0">
+                        <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2">Dados do Grupo Econômico</h6>
+                        <div className="field mb-2">
+                            <label htmlFor="name" className="text-xs font-bold mb-1 block">Nome*</label>
+                            <InputText 
+                                id="name" 
+                                value={economicGroup.name}
+                                onChange={(e) => setEconomicGroup({...economicGroup, name: e.target.value})} 
+                                className="p-inputtext-sm" 
+                                placeholder="Digite o nome do grupo"
+                            />
+                        </div>
+
+                        <div className="field mb-2">
+                            <label htmlFor="description" className="text-xs font-bold mb-1 block">Descrição</label>
+                            <InputTextarea 
+                                id="description"
+                                value={economicGroup.description}
+                                onChange={(e) => setEconomicGroup({...economicGroup, description: e.target.value})} 
+                                rows={3} 
+                                className="p-inputtext-sm" 
+                                placeholder="Digite uma descrição opcional"
+                            />
+                        </div>
                     </div>
 
-                    <div className="col-12 field">
-                        <label htmlFor="description" className="block text-sm font-bold mb-2">Descrição</label>
-                        <InputTextarea 
-                            id="description"
-                            value={economicGroup.description}
-                            onChange={(e) => setEconomicGroup({...economicGroup, description: e.target.value})} 
-                            rows={3} 
-                            className="w-full p-inputtext-sm" 
-                            placeholder="Digite uma descrição opcional"
-                        />
-                    </div>
-
-                    <div className="col-12 mt-4">
-                        <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1 uppercase text-xs">Organizações Vinculadas</h6>
+                    <div className="col-12 py-0">
+                        <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2">Organizações Vinculadas</h6>
                         
-                        <div className="flex gap-2 mb-3 align-items-end">
-                            <div className="flex-grow-1">
-                                <label className="block text-xs font-bold mb-1">Buscar Organização</label>
-                                <OrganizationSimpleSelector
-                                    value={null}
-                                    onChange={(e) => handleAddOrganization(e.value)}
-                                    placeholder="Selecione para adicionar..."
-                                />
-                            </div>
+                        <div className="field mb-2">
+                            <label className="text-xs font-bold mb-1 block">Buscar Organização</label>
+                            <OrganizationSimpleSelector
+                                value={null}
+                                onChange={(e) => handleAddOrganization(e.value)}
+                                placeholder="Selecione para adicionar..."
+                            />
                         </div>
 
                         <DataTable 
                             value={selectedOrganizations} 
-                            className="p-datatable-sm"
+                            className="p-datatable-sm text-xs"
                             emptyMessage="Nenhuma organização adicionada."
                             rows={5}
                             stripedRows
@@ -202,34 +210,13 @@ const EconomicGroupUpdater: React.FC<EconomicGroupUpdaterProps> = ({ visible, on
                             scrollable
                             scrollHeight="20rem"
                         >
-                            <Column field="name" header="Nome" sortable></Column>
-                            <Column header="Documento" body={cnpjBodyTemplate}></Column>
-                            <Column body={actionsTemplate} style={{ width: '3rem' }}></Column>
+                            <Column field="name" header="Nome" sortable headerClassName="text-xs py-2" bodyClassName="py-1 text-xs"></Column>
+                            <Column header="Documento" body={cnpjBodyTemplate} headerClassName="text-xs py-2" bodyClassName="py-1 text-xs"></Column>
+                            <Column body={actionsTemplate} style={{ width: '3rem' }} bodyClassName="py-1 text-xs"></Column>
                         </DataTable>
                     </div>
-
-                    <div className="col-12 mt-4 flex justify-content-end gap-2">
-                        <Button 
-                            label="Cancelar" 
-                            icon="pi pi-times" 
-                            disabled={loading}
-                            rounded
-                            severity="danger"
-                            outlined
-                            size="small"
-                            onClick={handleCancel}
-                        />
-                        <Button 
-                            label="Salvar"
-                            icon="pi pi-check" 
-                            onClick={handleSave}
-                            loading={loading}
-                            severity="success"
-                            rounded
-                            size="small"
-                        />
-                    </div>
                 </div>
+                {footer}
             </Sidebar>
         </>
     );
