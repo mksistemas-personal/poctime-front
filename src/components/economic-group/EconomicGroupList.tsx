@@ -211,7 +211,7 @@ const EconomicGroupList: React.FC = () => {
                         loading={loading}
                         footer={footer}
                         scrollable
-                        scrollHeight="525px"
+                        scrollHeight="calc(100vh - 20rem)"
                         className="p-datatable-sm h-full flex-1 text-sm"
                         stripedRows
                         tableStyle={{ minWidth: '50rem' }}
