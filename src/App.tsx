@@ -1,6 +1,7 @@
-import React, {useState} from 'react';
+import React from 'react';
 import './index.css';
 import './App.css';
+import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
 
 // prime react
 import "primereact/resources/primereact.min.css"; // Core CSS
@@ -15,31 +16,22 @@ import ClientList from "./components/clients/ClientList";
 import PersonList from "./components/person/PersonList";
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<string>('dashboard');
-
-  const renderContent = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <AdminDashboard onNavigate={(page) => setCurrentPage(page)} />;
-      case 'people':
-        return <PersonList />;
-      case 'organizations':
-        return <OrganizationList />;
-      case 'economic-groups':
-        return <EconomicGroupList />;
-      case 'clients':
-        return <ClientList />;
-      default:
-        return <AdminDashboard onNavigate={(page) => setCurrentPage(page)} />;
-    }
-  };
-
   return (
-    <div className="App">
-      <MainLayout onNavigate={(page) => setCurrentPage(page)} currentPage={currentPage}>
-        {renderContent()}
-      </MainLayout>
-    </div>
+    <Router>
+      <div className="App">
+        <MainLayout>
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<AdminDashboard />} />
+            <Route path="/people" element={<PersonList />} />
+            <Route path="/organizations" element={<OrganizationList />} />
+            <Route path="/economic-groups" element={<EconomicGroupList />} />
+            <Route path="/clients" element={<ClientList />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </MainLayout>
+      </div>
+    </Router>
   );
 }
 

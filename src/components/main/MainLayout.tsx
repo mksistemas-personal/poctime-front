@@ -4,18 +4,29 @@ import {Dropdown} from 'primereact/dropdown';
 import {Avatar} from 'primereact/avatar';
 import {MegaMenu} from "primereact/megamenu";
 import {Toolbar} from "primereact/toolbar";
+import {useLocation, useNavigate} from 'react-router-dom';
 import logo from '../../logo.svg';
 
 interface MainLayoutProps {
     children: React.ReactNode;
-    onNavigate: (page: string) => void;
-    currentPage?: string;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPage}) => {
+const MainLayout: React.FC<MainLayoutProps> = ({children}) => {
+    const navigate = useNavigate();
+    const location = useLocation();
     const [selectedOrg, setSelectedOrg] = useState(null);
     const [sidebarVisible, setSidebarVisible] = useState(true);
     const [selectedTheme, setSelectedTheme] = useState('lara-light-blue');
+
+    const currentPage = useMemo(() => {
+        const path = location.pathname;
+        if (path === '/dashboard') return 'dashboard';
+        if (path === '/people') return 'people';
+        if (path === '/organizations') return 'organizations';
+        if (path === '/economic-groups') return 'economic-groups';
+        if (path === '/clients') return 'clients';
+        return '';
+    }, [location]);
 
     const themes = [
         { name: 'Lara Light Blue', code: 'lara-light-blue' },
@@ -41,20 +52,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPag
         }
     };
 
-    // Mock de organizações para o seletor
-    const organizations = [
-        {name: 'Organização Matriz', code: '001'},
-        {name: 'Filial Nordeste', code: '002'},
-        {name: 'Filial Sul', code: '003'}
-    ];
-
-
     const items = useMemo(() => [
         {
             label: 'Dashboard',
             icon: 'pi pi pi-home',
             className: currentPage === 'dashboard' ? 'p-highlight' : '',
-            command: () => onNavigate('dashboard')
+            command: () => navigate('/dashboard')
         },
         {
             label: 'Cadastros',
@@ -68,32 +71,32 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPag
                                 label: 'Pessoas',
                                 icon: 'pi pi-user',
                                 className: currentPage === 'people' ? 'p-highlight' : '',
-                                command: () => onNavigate('people')
+                                command: () => navigate('/people')
                             },
                             {
                                 label: 'Organizações',
                                 icon: 'pi pi-building',
                                 className: currentPage === 'organizations' ? 'p-highlight' : '',
-                                command: () => onNavigate('organizations')
+                                command: () => navigate('/organizations')
                             },
                             {
                                 label: 'Grupos econômicos',
                                 icon: 'pi pi-sitemap',
                                 className: currentPage === 'economic-groups' ? 'p-highlight' : '',
-                                command: () => onNavigate('economic-groups')
+                                command: () => navigate('/economic-groups')
                             },
                             {
                                 label: 'Clientes',
                                 icon: 'pi pi-id-card',
                                 className: currentPage === 'clients' ? 'p-highlight' : '',
-                                command: () => onNavigate('clients')
+                                command: () => navigate('/clients')
                             }
                         ]
                     }
                 ]
             ]
         }
-    ], [onNavigate, currentPage]);
+    ], [navigate, currentPage]);
 
     const startContent = (
         <div className="flex align-items-center">
@@ -103,7 +106,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPag
                 className="p-button-text p-button-secondary mr-3"
             />
             <img alt="logo" src={logo} height="30" className="mr-4 cursor-pointer"
-                 onClick={() => onNavigate('dashboard')}/>
+                 onClick={() => navigate('/dashboard')}/>
         </div>
     );
 
