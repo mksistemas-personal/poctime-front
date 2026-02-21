@@ -49,32 +49,31 @@ const EconomicGroupDetails: React.FC<EconomicGroupDetailsProps> = ({ visible, ec
             visible={visible} 
             onHide={onHide} 
             position="right" 
-            style={{ width: '40rem' }}
+            style={{ width: '35rem' }}
             header={<h4 className="m-0">Detalhes do Grupo Econômico</h4>}
             className="p-sidebar-sm"
         >
-            <div className="grid mt-2">
+            <div className="p-fluid grid mt-1 w-full">
                 <div className="col-12 py-0">
-                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1 uppercase text-xs">Dados do Grupo Econômico</h6>
+                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2">Dados do Grupo Econômico</h6>
                     <p className="mb-1 text-sm"><strong>Nome:</strong> {economicGroup.name}</p>
                     <p className="text-sm mb-4"><strong>Descrição:</strong> {economicGroup.description} </p>
                 </div>
 
-                <div className="col-12">
-                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1 uppercase text-xs">Organizações Vinculadas</h6>
+                <div className="col-12 py-0">
+                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2">Organizações Vinculadas</h6>
                     <DataTable 
                         value={organizations} 
                         loading={loading} 
-                        className="p-datatable-sm"
+                        className="p-datatable-sm text-xs"
                         emptyMessage="Nenhuma organização vinculada encontrada."
                         rows={5}
                         selectionMode="single"
                         scrollable
-                        scrollHeight="flex"
+                        scrollHeight="20rem"
                         stripedRows>
-                        <Column field="name" header="Nome" sortable></Column>
-                        <Column header="Documento" body={cnpjBodyTemplate}
-                        ></Column>
+                        <Column field="name" header="Nome" sortable headerClassName="text-xs py-2" bodyClassName="py-1 text-xs"></Column>
+                        <Column header="Documento" body={cnpjBodyTemplate} headerClassName="text-xs py-2" bodyClassName="py-1 text-xs"></Column>
                     </DataTable>
                 </div>
             </div>

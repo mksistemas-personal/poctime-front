@@ -121,9 +121,8 @@ const EconomicGroupList: React.FC = () => {
             <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%', padding: '0.5rem 1rem' }}>
                 <span className="text-lg font-bold">Gerenciamento de Grupos Economicos</span>
                 <Button
-                    label="Novo Grupo Economico"
+                    label="Novo Grupo Econômico"
                     icon="pi pi-plus"
-                    severity="success"
                     rounded
                     onClick={() => setDisplayManager(true)}
                     size="small"
@@ -142,7 +141,7 @@ const EconomicGroupList: React.FC = () => {
                     label="Carregar mais grupos"
                     onClick={() => loadEconomicGroups(page + 1, filters)}
                     loading={loading}
-                    severity="success" rounded
+                    rounded
                     size="small"
                 />
             ) : (
@@ -214,9 +213,9 @@ const EconomicGroupList: React.FC = () => {
                             Filtros de Pesquisa
                         </span>
                     }>
-                        <div className="p-fluid grid row-gap-2">
+                        <div className="p-fluid grid row-gap-3">
                             <div className="field sm:col-6 md:col-4 mb-0">
-                                <label htmlFor="name" className="text-xs font-bold text-left block">Termo de Pesquisa</label>
+                                <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Termo de Pesquisa</label>
                                 <InputText id="name" value={filters} onChange={onFilterChange} onKeyDown={onKeyDown} className="p-inputtext-sm" placeholder="Pesquisar por nome ou descrição..." />
                             </div>
                             <div className="sm:col-6 flex justify-content-end gap-2 mt-0 align-items-end" style={{ width: 'auto', marginLeft: 'auto' }}>

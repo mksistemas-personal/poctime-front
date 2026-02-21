@@ -3,31 +3,61 @@ import {Button} from 'primereact/button';
 import {Dropdown} from 'primereact/dropdown';
 import {Avatar} from 'primereact/avatar';
 import {MegaMenu} from "primereact/megamenu";
+import {Toolbar} from "primereact/toolbar";
+import {useLocation, useNavigate} from 'react-router-dom';
+import logo from '../../logo.svg';
 
 interface MainLayoutProps {
     children: React.ReactNode;
-    onNavigate: (page: string) => void;
-    currentPage?: string;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPage}) => {
+const MainLayout: React.FC<MainLayoutProps> = ({children}) => {
+    const navigate = useNavigate();
+    const location = useLocation();
     const [selectedOrg, setSelectedOrg] = useState(null);
     const [sidebarVisible, setSidebarVisible] = useState(true);
+    const [selectedTheme, setSelectedTheme] = useState('lara-light-blue');
 
-    // Mock de organizações para o seletor
-    const organizations = [
-        {name: 'Organização Matriz', code: '001'},
-        {name: 'Filial Nordeste', code: '002'},
-        {name: 'Filial Sul', code: '003'}
+    const currentPage = useMemo(() => {
+        const path = location.pathname;
+        if (path === '/dashboard') return 'dashboard';
+        if (path === '/people') return 'people';
+        if (path === '/organizations') return 'organizations';
+        if (path === '/economic-groups') return 'economic-groups';
+        if (path === '/clients') return 'clients';
+        return '';
+    }, [location]);
+
+    const themes = [
+        { name: 'Lara Light Blue', code: 'lara-light-blue' },
+        { name: 'Lara Dark Blue', code: 'lara-dark-blue' },
+        { name: 'Lara Light Indigo', code: 'lara-light-indigo' },
+        { name: 'Lara Dark Indigo', code: 'lara-dark-indigo' },
+        { name: 'Saga Orange', code: 'saga-orange' },
+        { name: 'Material Dark Indigo', code: 'md-dark-indigo' },
+        { name: 'Bootstrap Light Blue', code: 'bootstrap4-light-blue' },
+        { name: 'Bootstrap Dark Blue', code: 'bootstrap4-dark-blue' },
+        { name: 'Tailwind Light', code: 'tailwind-light' },
+        { name: 'Viva Light', code: 'viva-light' },
+        { name: 'Viva Dark', code: 'viva-dark' }
     ];
 
+    const onThemeChange = (e: { value: string }) => {
+        const theme = e.value;
+        const themeLink = document.getElementById('theme-link') as HTMLLinkElement;
+
+        if (themeLink) {
+            themeLink.href = `/themes/${theme}/theme.css`;
+            setSelectedTheme(theme);
+        }
+    };
 
     const items = useMemo(() => [
         {
             label: 'Dashboard',
             icon: 'pi pi pi-home',
             className: currentPage === 'dashboard' ? 'p-highlight' : '',
-            command: () => onNavigate('dashboard')
+            command: () => navigate('/dashboard')
         },
         {
             label: 'Cadastros',
@@ -41,86 +71,95 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPag
                                 label: 'Pessoas',
                                 icon: 'pi pi-user',
                                 className: currentPage === 'people' ? 'p-highlight' : '',
-                                command: () => onNavigate('people')
+                                command: () => navigate('/people')
                             },
                             {
                                 label: 'Organizações',
                                 icon: 'pi pi-building',
                                 className: currentPage === 'organizations' ? 'p-highlight' : '',
-                                command: () => onNavigate('organizations')
+                                command: () => navigate('/organizations')
                             },
                             {
                                 label: 'Grupos econômicos',
                                 icon: 'pi pi-sitemap',
                                 className: currentPage === 'economic-groups' ? 'p-highlight' : '',
-                                command: () => onNavigate('economic-groups')
+                                command: () => navigate('/economic-groups')
                             },
                             {
                                 label: 'Clientes',
                                 icon: 'pi pi-id-card',
                                 className: currentPage === 'clients' ? 'p-highlight' : '',
-                                command: () => onNavigate('clients')
+                                command: () => navigate('/clients')
                             }
                         ]
                     }
                 ]
             ]
         }
-    ], [onNavigate, currentPage]);
+    ], [navigate, currentPage]);
+
+    const startContent = (
+        <div className="flex align-items-center">
+            <Button
+                icon="pi pi-bars"
+                onClick={() => setSidebarVisible(!sidebarVisible)}
+                className="p-button-text p-button-secondary mr-3"
+            />
+            <img alt="logo" src={logo} height="30" className="mr-4 cursor-pointer"
+                 onClick={() => navigate('/dashboard')}/>
+        </div>
+    );
+
+    const endContent = (
+        <div className="flex align-items-center gap-3">
+
+            <Dropdown
+                value={selectedTheme}
+                options={themes}
+                onChange={onThemeChange}
+                optionLabel="name"
+                optionValue="code"
+                placeholder="Tema"
+                tooltip="Selecione um tema"
+                className="w-12rem border-none bg-gray-100"
+            />
+
+            <div className="border-left-1 surface-border h-2rem mx-2"></div>
+
+            {/* Ações de Usuário */}
+            <Button icon="pi pi-bell" className="p-button-rounded p-button-text p-button-secondary"/>
+            <Button icon="pi pi-cog" className="p-button-rounded p-button-text p-button-secondary"/>
+
+            <div className="border-left-1 surface-border h-2rem mx-2"></div>
+
+            <div
+                className="flex align-items-center cursor-pointer p-2 border-round hover:surface-100 transition-colors">
+                <Avatar label="JD" shape="circle" className="bg-primary text-white"/>
+                <div className="flex flex-column ml-2 hidden sm:flex">
+                    <span className="font-bold text-sm">João Doe</span>
+                    <span className="text-xs text-600">Admin</span>
+                </div>
+            </div>
+
+            <Button
+                label="Sair"
+                icon="pi pi-sign-out"
+                className="p-button-outlined p-button-danger p-button-sm ml-2"
+                onClick={() => console.log('Sign Out')}
+            />
+        </div>
+    );
 
 
 return (
     <div className="min-h-screen flex flex-column surface-ground">
         {/* Topbar Customizada */}
-        <header
-            className="surface-card shadow-2 h-4rem flex align-items-center justify-content-between px-4 sticky top-0"
-            style={{ zIndex: 1000 }}>
-            <div className="flex align-items-center">
-                <Button
-                    icon="pi pi-bars"
-                    onClick={() => setSidebarVisible(!sidebarVisible)}
-                    className="p-button-text p-button-secondary mr-3"
-                />
-                <img alt="logo" src="logo.svg" height="30" className="mr-4 cursor-pointer"
-                     onClick={() => onNavigate('dashboard')}/>
-            </div>
-
-            <div className="flex align-items-center gap-3">
-                {/* Seletor de Organização */}
-                <span className="p-input-icon-left hidden md:block">
-                        <i className="pi pi-building mr-2"/>
-                        <Dropdown
-                            value={selectedOrg}
-                            options={organizations}
-                            onChange={(e) => setSelectedOrg(e.value)}
-                            optionLabel="name"
-                            placeholder="Organização"
-                            className="w-full md:w-20rem border-none bg-gray-100"
-                        />
-                    </span>
-                {/* Ações de Usuário */}
-                <Button icon="pi pi-bell" className="p-button-rounded p-button-text p-button-secondary"/>
-                <Button icon="pi pi-cog" className="p-button-rounded p-button-text p-button-secondary"/>
-
-                <div className="border-left-1 surface-border h-2rem mx-2"></div>
-
-                <div
-                    className="flex align-items-center cursor-pointer p-2 border-round hover:surface-100 transition-colors">
-                    <Avatar label="JD" shape="circle" className="bg-primary text-white"/>
-                    <div className="flex flex-column ml-2 hidden sm:flex">
-                        <span className="font-bold text-sm">João Doe</span>
-                        <span className="text-xs text-600">Admin</span>
-                    </div>
-                </div>
-
-                <Button
-                    label="Sair"
-                    icon="pi pi-sign-out"
-                    className="p-button-outlined p-button-danger p-button-sm ml-2"
-                    onClick={() => console.log('Sign Out')}
-                />
-            </div>
-        </header>
+        <Toolbar
+            start={startContent}
+            end={endContent}
+            className="surface-50 shadow-2 h-5rem px-4 sticky top-0"
+            style={{ zIndex: 1000, borderRadius: '0rem' }}
+        />
 
         <div className="flex flex-grow-1 min-h-0" style={{ height: 'calc(100vh - 4rem)', position: 'relative' }}>
             <aside
@@ -144,7 +183,7 @@ return (
             </aside>
 
             {/* Área de Conteúdo */}
-            <main className="flex-1 p-3 md:p-5 flex flex-column min-h-0 overflow-y-auto">
+            <main className="flex-1 p-4 md:p-6 flex flex-column min-h-0 overflow-y-auto">
                 {children}
             </main>
         </div>

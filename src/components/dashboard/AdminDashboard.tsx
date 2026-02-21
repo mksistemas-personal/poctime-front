@@ -1,12 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import {DashboardService, IDashboardTotals} from "./DashboardService";
 import {Card} from "primereact/card";
+import {useNavigate} from 'react-router-dom';
 
-interface AdminDashboardProps {
-    onNavigate?: (page: string) => void;
-}
-
-const AdminDashboard: React.FC<AdminDashboardProps> = ({onNavigate}) => {
+const AdminDashboard: React.FC = () => {
+    const navigate = useNavigate();
     const [totals, setTotals] = useState<IDashboardTotals | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -74,13 +72,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({onNavigate}) => {
     const getTargetPage = (key: string) => {
         switch (key) {
             case 'totalOrganizations':
-                return 'organizations';
+                return '/organizations';
             case 'totalEconomicGroups':
-                return 'economic-groups';
+                return '/economic-groups';
             case 'totalClients':
-                return 'clients';
+                return '/clients';
             case 'totalPersons':
-                return 'people';
+                return '/people';
             default:
                 return null;
         }
@@ -97,13 +95,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({onNavigate}) => {
                     const icon = getIcon(key);
                     const color = getColor(key);
                     const targetPage = getTargetPage(key);
-                    const hasLink = !!(targetPage && onNavigate);
+                    const hasLink = !!targetPage;
 
                     return (
                         <div key={key} className="col-12 md:col-6 lg:col-4">
                             <Card
                                 className={`shadow-1 border-none border-left-3 border-${color}-500 cursor-pointer hover:shadow-4 transition-all transition-duration-300 surface-card`}
-                                onClick={() => hasLink && onNavigate(targetPage)}
+                                onClick={() => hasLink && navigate(targetPage)}
                             >
                                 <div className="flex align-items-center justify-content-between">
                                     <div className="flex flex-column">

@@ -33,7 +33,7 @@ const DocumentDisplay: React.FC<DocumentDisplayProps> = ({ type, value }) => {
 
   return (
     <span>
-      <span style={{ fontSize: '0.60rem', fontWeight: 'bold', marginRight: '4px', color: '#650' }}>
+      <span className="text-primary" style={{ fontSize: '0.65rem', marginRight: '4px' }}>
         {type}:
       </span>
       {formattedValue}

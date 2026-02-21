@@ -143,7 +143,7 @@ const PersonList: React.FC = () => {
                     label="Carregar mais pessoas"
                     onClick={() => loadPeople(page + 1)}
                     loading={loading}
-                    severity="success" rounded
+                    rounded
                     size="small"
                 />
             ) : (
@@ -202,7 +202,6 @@ const PersonList: React.FC = () => {
                 <Button
                     label="Nova Pessoa"
                     icon="pi pi-plus"
-                    severity="success"
                     rounded
                     onClick={() => setDisplayManager(true)}
                     size="small"
@@ -216,20 +215,20 @@ const PersonList: React.FC = () => {
             <Toast ref={toast} />
             <ConfirmDialog />
             <Panel headerTemplate={headerTemplate} className="flex flex-column flex-1 min-h-0" pt={{ content: { className: 'flex flex-column flex-1 min-h-0' } }}>
-                <Accordion className="mb-2">
+                <Accordion className="mb-4">
                     <AccordionTab header={
                         <span className="flex align-items-center gap-2 text-xs">
                             <i className="pi pi-filter" style={{ fontSize: '0.75rem' }}></i>
                             Filtros de Pesquisa
                         </span>
                     }>
-                        <div className="p-fluid grid row-gap-2">
+                        <div className="p-fluid grid row-gap-3 mt-1">
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="name" className="text-xs font-bold text-left block">Nome da Pessoa</label>
+                                <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Nome da Pessoa</label>
                                 <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Pessoa..." />
                             </div>
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="identifier" className="text-xs font-bold text-left block">Documento</label>
+                                <label htmlFor="identifier" className="text-xs font-bold text-left block mb-2">Documento</label>
                                 <InputText id="identifier" value={filters.identifier} onChange={(e) => onFilterChange(e, 'identifier')} className="p-inputtext-sm" placeholder="CPF/CNPJ..." />
                             </div>
                             <div className="sm:col-6 flex justify-content-end gap-2 mt-0 align-items-end" style={{ width: 'auto', marginLeft: 'auto' }}>

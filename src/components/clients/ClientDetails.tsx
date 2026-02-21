@@ -22,20 +22,20 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ visible, client, onHide }
             visible={visible} 
             onHide={onHide} 
             position="right" 
-            style={{ width: '30rem' }}
+            style={{ width: '35rem' }}
             header={<h4 className="m-0">Detalhes do Cliente</h4>}
             className="p-sidebar-sm"
         >
-            <div className="grid mt-2">
+            <div className="p-fluid grid mt-1 w-full">
                 <div className="col-12 py-0">
-                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1 uppercase text-xs">Dados do Cliente</h6>
+                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2 uppercase text-xs">Dados do Cliente</h6>
                     <p className="mb-1 text-sm"><strong>Nome:</strong> {client.clientPerson.name}</p>
                     <p className="text-sm"><strong>Doc:</strong> {documentBodyTemplate(client)}</p>
                     <p className="mb-1 text-sm"><strong>E-mail:</strong> {client.clientEmail}</p>
                 </div>
 
                 <div className="col-12 py-0 mt-3">
-                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1 uppercase text-xs">Endereço</h6>
+                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2 uppercase text-xs">Endereço</h6>
                     <div className="grid p-0 m-0">
                         <div className="col-12 p-0 mb-1 text-sm">
                             <p className="m-0"><strong>Rua:</strong> {client.address.street}, {client.address.number}</p>
