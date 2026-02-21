@@ -20,8 +20,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPag
     const themes = [
         { name: 'Lara Light Blue', code: 'lara-light-blue' },
         { name: 'Lara Dark Blue', code: 'lara-dark-blue' },
+        { name: 'Lara Light Indigo', code: 'lara-light-indigo' },
+        { name: 'Lara Dark Indigo', code: 'lara-dark-indigo' },
         { name: 'Saga Orange', code: 'saga-orange' },
-        { name: 'Material Dark Indigo', code: 'md-dark-indigo' }
+        { name: 'Material Dark Indigo', code: 'md-dark-indigo' },
+        { name: 'Bootstrap Light Blue', code: 'bootstrap4-light-blue' },
+        { name: 'Bootstrap Dark Blue', code: 'bootstrap4-dark-blue' },
+        { name: 'Tailwind Light', code: 'tailwind-light' },
+        { name: 'Viva Light', code: 'viva-light' },
+        { name: 'Viva Dark', code: 'viva-dark' }
     ];
 
     const onThemeChange = (e: { value: string }) => {
@@ -110,6 +117,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({children, onNavigate, currentPag
                 optionLabel="name"
                 optionValue="code"
                 placeholder="Tema"
+                tooltip="Selecione um tema"
                 className="w-12rem border-none bg-gray-100"
             />
 
@@ -146,7 +154,7 @@ return (
         <Toolbar
             start={startContent}
             end={endContent}
-            className="surface-50 shadow-2 h-4rem px-4 sticky top-0"
+            className="surface-50 shadow-2 h-5rem px-4 sticky top-0"
             style={{ zIndex: 1000, borderRadius: '0rem' }}
         />
 
@@ -172,7 +180,7 @@ return (
             </aside>
 
             {/* Área de Conteúdo */}
-            <main className="flex-1 p-3 md:p-5 flex flex-column min-h-0 overflow-y-auto">
+            <main className="flex-1 p-4 md:p-6 flex flex-column min-h-0 overflow-y-auto">
                 {children}
             </main>
         </div>
