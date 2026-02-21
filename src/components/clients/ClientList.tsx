@@ -15,6 +15,8 @@ import ClientDetails from "./ClientDetails";
 import ClientManager from "./ClientManager";
 import ClientUpdater from "./ClientUpdater";
 import HeaderList from '../shared/components/list/HeaderList';
+import ActionRowList from '../shared/components/list/ActionRowList';
+import {API_CONFIG} from "../../config/ApiConfig";
 
 
 const ClientList: React.FC = () => {
@@ -45,13 +47,11 @@ const ClientList: React.FC = () => {
         isLastPageRef.current = isLastPage;
     }, [isLastPage]);
 
-    const ROWS_PER_PAGE = 10;
-
     const loadClients = useCallback(async (pageNumber: number, currentFilters: any = filters) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
-            const data = await ClientService.getClients(pageNumber, ROWS_PER_PAGE, currentFilters);
+            const data = await ClientService.getClients(pageNumber, API_CONFIG.ROWS_PER_PAGE, currentFilters);
 
             // Garantir que estamos pegando o objeto de organização, caso venha envolvido
             const content = data.content.map((item: any) => {
@@ -156,44 +156,20 @@ const ClientList: React.FC = () => {
 
     const actionBodyTemplate = (rowData: IClient) => {
         return (
-            <div className="flex gap-1">
-                <Button
-                    icon="pi pi-search"
-                    rounded
-                    text
-                    severity="info"
-                    onClick={() => {
-                        setSelectedClient(rowData);
-                        setDisplayDetails(true);
-                    }}
-                    tooltip="Ver detalhes"
-                    size="small"
-                    className="p-1"
-                />
-                <Button
-                    icon="pi pi-pencil"
-                    rounded
-                    text
-                    severity="warning"
-                    onClick={() => {
-                        setClientToEdit(rowData);
-                        setDisplayUpdater(true);
-                    }}
-                    tooltip="Editar cliente"
-                    size="small"
-                    className="p-1"
-                />
-                <Button
-                    icon="pi pi-trash"
-                    rounded
-                    text
-                    severity="danger"
-                    onClick={() => confirmDelete(rowData)}
-                    tooltip="Excluir cliente"
-                    size="small"
-                    className="p-1"
-                />
-            </div>
+            <ActionRowList
+                rowData={rowData}
+                onView={(data) => {
+                    setSelectedClient(data);
+                    setDisplayDetails(true);
+                }}
+                onEdit={(data) => {
+                    setClientToEdit(data);
+                    setDisplayUpdater(true);
+                }}
+                onDelete={(data) => confirmDelete(data)}
+                editTooltip="Editar cliente"
+                deleteTooltip="Excluir cliente"
+            />
         );
     };
 

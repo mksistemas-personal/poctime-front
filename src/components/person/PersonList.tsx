@@ -14,6 +14,8 @@ import PersonManager from "./PersonManager";
 import PersonDetails from "./PersonDetails";
 import PersonUpdater from "./PersonUpdater";
 import HeaderList from '../shared/components/list/HeaderList';
+import ActionRowList from '../shared/components/list/ActionRowList';
+import {API_CONFIG} from "../../config/ApiConfig";
 
 
 const PersonList: React.FC = () => {
@@ -46,13 +48,11 @@ const PersonList: React.FC = () => {
         isLastPageRef.current = isLastPage;
     }, [isLastPage]);
 
-    const ROWS_PER_PAGE = 10;
-
     const loadPeople = useCallback(async (pageNumber: number, currentFilters: any = appliedFilters) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
-            const data = await PersonService.getPeople(pageNumber, ROWS_PER_PAGE, currentFilters);
+            const data = await PersonService.getPeople(pageNumber, API_CONFIG.ROWS_PER_PAGE, currentFilters);
 
             // Garantir que estamos pegando o objeto de organização, caso venha envolvido
             const content = data.content.map((item: any) => {
@@ -155,44 +155,20 @@ const PersonList: React.FC = () => {
 
     const actionBodyTemplate = (rowData: IPerson) => {
         return (
-            <div className="flex gap-1">
-                <Button
-                    icon="pi pi-search"
-                    rounded
-                    text
-                    severity="info"
-                    onClick={() => {
-                        setSelectedPerson(rowData);
-                        setDisplayDetails(true);
-                    }}
-                    tooltip="Ver detalhes"
-                    size="small"
-                    className="p-1"
-                />
-                <Button
-                    icon="pi pi-pencil"
-                    rounded
-                    text
-                    severity="warning"
-                    onClick={() => {
-                        setPersonToEdit(rowData);
-                        setDisplayUpdater(true);
-                    }}
-                    tooltip="Editar cliente"
-                    size="small"
-                    className="p-1"
-                />
-                <Button
-                    icon="pi pi-trash"
-                    rounded
-                    text
-                    severity="danger"
-                    onClick={() => confirmDelete(rowData)}
-                    tooltip="Excluir cliente"
-                    size="small"
-                    className="p-1"
-                />
-            </div>
+            <ActionRowList
+                rowData={rowData}
+                onView={(data) => {
+                    setSelectedPerson(data);
+                    setDisplayDetails(true);
+                }}
+                onEdit={(data) => {
+                    setPersonToEdit(data);
+                    setDisplayUpdater(true);
+                }}
+                onDelete={(data) => confirmDelete(data)}
+                editTooltip="Editar pessoa"
+                deleteTooltip="Excluir pessoa"
+            />
         );
     };
 

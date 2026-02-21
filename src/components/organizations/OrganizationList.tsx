@@ -15,6 +15,8 @@ import OrganizationDetails from './OrganizationDetails';
 import OrganizationManager from './OrganizationManager';
 import OrganizationUpdater from './OrganizationUpdater';
 import HeaderList from '../shared/components/list/HeaderList';
+import ActionRowList from '../shared/components/list/ActionRowList';
+import {API_CONFIG} from "../../config/ApiConfig";
 
 const OrganizationList: React.FC = () => {
     const [organizations, setOrganizations] = useState<IOrganization[]>([]);
@@ -46,13 +48,12 @@ const OrganizationList: React.FC = () => {
         isLastPageRef.current = isLastPage;
     }, [isLastPage]);
 
-    const ROWS_PER_PAGE = 10;
 
     const loadOrganizations = useCallback(async (pageNumber: number, currentFilters: any = filters) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
-            const data = await OrganizationService.getOrganizations(pageNumber, ROWS_PER_PAGE, currentFilters);
+            const data = await OrganizationService.getOrganizations(pageNumber, API_CONFIG.ROWS_PER_PAGE, currentFilters);
 
             // Garantir que estamos pegando o objeto de organização, caso venha envolvido
             const content = data.content.map((item: any) => {
@@ -155,44 +156,20 @@ const OrganizationList: React.FC = () => {
 
     const actionBodyTemplate = (rowData: IOrganization) => {
         return (
-            <div className="flex gap-1">
-                <Button
-                    icon="pi pi-search"
-                    rounded
-                    text
-                    severity="info"
-                    onClick={() => {
-                        setSelectedOrganization(rowData);
-                        setDisplayDetails(true);
-                    }}
-                    tooltip="Ver detalhes"
-                    size="small"
-                    className="p-1"
-                />
-                <Button
-                    icon="pi pi-pencil"
-                    rounded
-                    text
-                    severity="warning"
-                    onClick={() => {
-                        setOrganizationToEdit(rowData);
-                        setDisplayUpdater(true);
-                    }}
-                    tooltip="Editar organização"
-                    size="small"
-                    className="p-1"
-                />
-                <Button
-                    icon="pi pi-trash"
-                    rounded
-                    text
-                    severity="danger"
-                    onClick={() => confirmDelete(rowData)}
-                    tooltip="Excluir organização"
-                    size="small"
-                    className="p-1"
-                />
-            </div>
+            <ActionRowList
+                rowData={rowData}
+                onView={(data) => {
+                    setSelectedOrganization(data);
+                    setDisplayDetails(true);
+                }}
+                onEdit={(data) => {
+                    setOrganizationToEdit(data);
+                    setDisplayUpdater(true);
+                }}
+                onDelete={(data) => confirmDelete(data)}
+                editTooltip="Editar organização"
+                deleteTooltip="Excluir organização"
+            />
         );
     };
 

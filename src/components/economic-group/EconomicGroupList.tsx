@@ -14,6 +14,8 @@ import EconomicGroupCreator from "./EconomicGroupCreator";
 import EconomicGroupUpdater from "./EconomicGroupUpdater";
 import EconomicGroupOrganizationsSubTable from "./EconomicGroupOrganizationsSubTable";
 import HeaderList from '../shared/components/list/HeaderList';
+import ActionRowList from '../shared/components/list/ActionRowList';
+import {API_CONFIG} from "../../config/ApiConfig";
 
 
 const EconomicGroupList: React.FC = () => {
@@ -41,13 +43,11 @@ const EconomicGroupList: React.FC = () => {
         isLastPageRef.current = isLastPage;
     }, [isLastPage]);
 
-    const ROWS_PER_PAGE = 10;
-
     const loadEconomicGroups = useCallback(async (pageNumber: number, currentFilters?: string) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
-            const data = await EconomicGroupService.getAllEconomicGroups(pageNumber, ROWS_PER_PAGE, currentFilters !== undefined ? currentFilters : filters);
+            const data = await EconomicGroupService.getAllEconomicGroups(pageNumber, API_CONFIG.ROWS_PER_PAGE, currentFilters !== undefined ? currentFilters : filters);
 
             const content = data.content.map((item: any) => {
                 if (item.economicGroup) {
@@ -147,44 +147,20 @@ const EconomicGroupList: React.FC = () => {
 
     const actionBodyTemplate = (rowData: IEconomicGroup) => {
         return (
-            <div className="flex gap-1">
-                <Button
-                    icon="pi pi-search"
-                    rounded
-                    text
-                    severity="info"
-                    onClick={() => {
-                        setSelectedEconomicGroup(rowData);
-                        setDisplayDetails(true);
-                    }}
-                    tooltip="Ver detalhes"
-                    size="small"
-                    className="p-1"
-                />
-                <Button
-                    icon="pi pi-pencil"
-                    rounded
-                    text
-                    severity="warning"
-                    onClick={() => {
-                        setEconomicGroupToEdit(rowData);
-                        setDisplayUpdater(true);
-                    }}
-                    tooltip="Editar organização"
-                    size="small"
-                    className="p-1"
-                />
-                <Button
-                    icon="pi pi-trash"
-                    rounded
-                    text
-                    severity="danger"
-                    onClick={() => confirmDelete(rowData)}
-                    tooltip="Excluir organização"
-                    size="small"
-                    className="p-1"
-                />
-            </div>
+            <ActionRowList
+                rowData={rowData}
+                onView={(data) => {
+                    setSelectedEconomicGroup(data);
+                    setDisplayDetails(true);
+                }}
+                onEdit={(data) => {
+                    setEconomicGroupToEdit(data);
+                    setDisplayUpdater(true);
+                }}
+                onDelete={(data) => confirmDelete(data)}
+                editTooltip="Editar grupo econômico"
+                deleteTooltip="Excluir grupo econômico"
+            />
         );
     };
 
