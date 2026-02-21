@@ -1,13 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Sidebar } from 'primereact/sidebar';
-import { InputText } from 'primereact/inputtext';
-import { Button } from 'primereact/button';
-import { Toast } from 'primereact/toast';
-import { OrganizationService } from './OrganizationService';
-import { IOrganization } from './OrganizationStructures';
+import React, {useEffect, useRef, useState} from 'react';
+import {Sidebar} from 'primereact/sidebar';
+import {InputText} from 'primereact/inputtext';
+import {Button} from 'primereact/button';
+import {Toast} from 'primereact/toast';
+import {OrganizationService} from './OrganizationService';
+import {IOrganization} from './OrganizationStructures';
 import OrganizationSelector from './OrganizationSelector';
 import {InputMask} from "primereact/inputmask";
-import { IZipCodeResponse, ZipCodeService } from '../shared/zipcode/ZipCodeService';
+import {IZipCodeResponse, ZipCodeService} from '../shared/zipcode/ZipCodeService';
 import FederalStateSelector from '../shared/states/FederalStateSelector';
 
 interface OrganizationUpdaterProps {
@@ -214,8 +214,8 @@ const OrganizationUpdater: React.FC<OrganizationUpdaterProps> = ({ visible, onHi
 
     const footer = (
         <div className="flex justify-content-end gap-2 mt-4">
-            <Button label="Cancelar" icon="pi pi-times" outlined onClick={handleCancel} severity="danger" rounded size="small" />
-            <Button label="Salvar" icon="pi pi-check" onClick={handleSave} severity="success" rounded size="small"/>
+            <Button label="Cancelar" icon="pi pi-times" outlined onClick={handleCancel} rounded size="small" className="p-button-secondary" />
+            <Button label="Salvar" icon="pi pi-check" onClick={handleSave} rounded size="small"/>
         </div>
     );
 
@@ -230,9 +230,9 @@ const OrganizationUpdater: React.FC<OrganizationUpdaterProps> = ({ visible, onHi
                 header={<h4 className="m-0">Atualizar Organização</h4>}
                 className="p-sidebar-sm"
             >
-            <div className="p-fluid grid mt-2 w-full">
+            <div className="p-fluid grid mt-1 w-full">
                 <div className="col-12 py-0">
-                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1">Dados da Organização</h6>
+                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2">Dados da Organização</h6>
                     <div className="field mb-2">
                         <label htmlFor="orgName" className="text-xs font-bold mb-1 block">Nome da Organização</label>
                         <InputText 
@@ -255,8 +255,8 @@ const OrganizationUpdater: React.FC<OrganizationUpdaterProps> = ({ visible, onHi
                     </div>
                 </div>
 
-                <div className="col-12 py-0 mt-2">
-                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1">Responsável</h6>
+                <div className="col-12 py-0">
+                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2">Responsável</h6>
                     <div className="field mb-2">
                         <label htmlFor="respName" className="text-xs font-bold mb-1 block">Nome do Responsável</label>
                         {!isRespManualEntry ? (
@@ -326,27 +326,28 @@ const OrganizationUpdater: React.FC<OrganizationUpdaterProps> = ({ visible, onHi
                             className={`p-inputtext-sm ${emailError ? 'p-invalid' : ''}`} 
                             value={organization.responsibleEmail} 
                             onChange={(e) => onInputChange(e, 'responsibleEmail')} 
+                            placeholder="exemplo@email.com"
                         />
-                        {emailError && <small className="p-error block mt-1" style={{ fontSize: '0.7rem' }}>{emailError}</small>}
+                        {emailError && <small className="p-error block mt-1 text-xs">{emailError}</small>}
                     </div>
                 </div>
 
-                <div className="col-12 py-0 mt-2">
-                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1">Endereço</h6>
+                <div className="col-12 py-0">
+                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2">Endereço</h6>
                     <div className="grid p-0 m-0">
-                        <div className="field col-9 p-1 mb-1">
+                        <div className="field col-9 p-1 mb-2">
                             <label htmlFor="street" className="text-xs font-bold mb-1 block">Rua</label>
-                            <InputText id="street" className="p-inputtext-sm" value={organization.address.street} onChange={(e) => onInputChange(e, 'address.street')} />
+                            <InputText id="street" className="p-inputtext-sm" value={organization.address.street} onChange={(e) => onInputChange(e, 'address.street')} placeholder="Rua, Avenida, etc." />
                         </div>
-                        <div className="field col-3 p-1 mb-1">
+                        <div className="field col-3 p-1 mb-2">
                             <label htmlFor="number" className="text-xs font-bold mb-1 block">Nº</label>
-                            <InputText id="number" className="p-inputtext-sm" value={organization.address.number} onChange={(e) => onInputChange(e, 'address.number')} />
+                            <InputText id="number" className="p-inputtext-sm" value={organization.address.number} onChange={(e) => onInputChange(e, 'address.number')} placeholder="123" />
                         </div>
-                        <div className="field col-7 p-1 mb-1">
+                        <div className="field col-7 p-1 mb-2">
                             <label htmlFor="neighborhood" className="text-xs font-bold mb-1 block">Bairro</label>
-                            <InputText id="neighborhood" className="p-inputtext-sm" value={organization.address.neighborhood} onChange={(e) => onInputChange(e, 'address.neighborhood')} />
+                            <InputText id="neighborhood" className="p-inputtext-sm" value={organization.address.neighborhood} onChange={(e) => onInputChange(e, 'address.neighborhood')} placeholder="Bairro" />
                         </div>
-                        <div className="field col-5 p-1 mb-1">
+                        <div className="field col-5 p-1 mb-2">
                             <label htmlFor="zipCode" className="text-xs font-bold mb-1 block">CEP</label>
                             <InputMask 
                                 id="zipCode"
@@ -357,11 +358,11 @@ const OrganizationUpdater: React.FC<OrganizationUpdaterProps> = ({ visible, onHi
                                 placeholder="00000-000"
                             />
                         </div>
-                        <div className="field col-9 p-1 mb-1">
+                        <div className="field col-9 p-1 mb-2">
                             <label htmlFor="city" className="text-xs font-bold mb-1 block">Cidade</label>
-                            <InputText id="city" className="p-inputtext-sm" value={organization.address.city} onChange={(e) => onInputChange(e, 'address.city')} />
+                            <InputText id="city" className="p-inputtext-sm" value={organization.address.city} onChange={(e) => onInputChange(e, 'address.city')} placeholder="Cidade" />
                         </div>
-                        <div className="field col-3 p-1 mb-1">
+                        <div className="field col-3 p-1 mb-2">
                             <label htmlFor="stateCode" className="text-xs font-bold mb-1 block">UF</label>
                             <FederalStateSelector 
                                 value={organization.address.stateCode} 

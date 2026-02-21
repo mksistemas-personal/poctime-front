@@ -143,7 +143,7 @@ const OrganizationList: React.FC = () => {
                     label="Carregar mais organizações" 
                     onClick={() => loadOrganizations(page + 1)} 
                     loading={loading}
-                    severity="success" rounded
+                    rounded
                     size="small"
                 />
             ) : (
@@ -202,7 +202,6 @@ const OrganizationList: React.FC = () => {
                 <Button
                     label="Nova Organização"
                     icon="pi pi-plus"
-                    severity="success"
                     rounded
                     onClick={() => setDisplayManager(true)}
                     size="small"
@@ -216,36 +215,36 @@ const OrganizationList: React.FC = () => {
             <Toast ref={toast} />
             <ConfirmDialog />
             <Panel headerTemplate={headerTemplate} className="flex flex-column flex-1 min-h-0" pt={{ content: { className: 'flex flex-column flex-1 min-h-0' } }}>
-                <Accordion className="mb-2">
+                <Accordion className="mb-4">
                     <AccordionTab header={
                         <span className="flex align-items-center gap-2 text-xs">
                             <i className="pi pi-filter" style={{ fontSize: '0.75rem' }}></i>
                             Filtros de Pesquisa
                         </span>
                     }>
-                        <div className="p-fluid grid row-gap-2">
+                        <div className="p-fluid grid row-gap-3">
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="name" className="text-xs font-bold text-left block">Nome da Organização</label>
+                                <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Nome da Organização</label>
                                 <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Organizacao..." />
                             </div>
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="respName" className="text-xs font-bold text-left block">Nome do Responsável</label>
+                                <label htmlFor="respName" className="text-xs font-bold text-left block mb-2">Nome do Responsável</label>
                                 <InputText id="respName" value={filters.respName} onChange={(e) => onFilterChange(e, 'respName')} className="p-inputtext-sm" />
                             </div>
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="responsibleEmail" className="text-xs font-bold text-left block">E-mail do Responsável</label>
+                                <label htmlFor="responsibleEmail" className="text-xs font-bold text-left block mb-2">E-mail do Responsável</label>
                                 <InputText id="responsibleEmail" value={filters.responsibleEmail} onChange={(e) => onFilterChange(e, 'responsibleEmail')} className="p-inputtext-sm" />
                             </div>
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="street" className="text-xs font-bold text-left block">Rua</label>
+                                <label htmlFor="street" className="text-xs font-bold text-left block mb-2">Rua</label>
                                 <InputText id="street" value={filters.street} onChange={(e) => onFilterChange(e, 'street')} className="p-inputtext-sm" />
                             </div>
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="city" className="text-xs font-bold text-left block">Cidade</label>
+                                <label htmlFor="city" className="text-xs font-bold text-left block mb-2">Cidade</label>
                                 <InputText id="city" value={filters.city} onChange={(e) => onFilterChange(e, 'city')} className="p-inputtext-sm" />
                             </div>
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="stateCode" className="text-xs font-bold block text-left">UF</label>
+                                <label htmlFor="stateCode" className="text-xs font-bold block text-left mb-2">UF</label>
                                 <FederalStateSelector 
                                     value={filters.stateCode} 
                                     onChange={(val) => setFilters((prev: any) => ({ ...prev, stateCode: val }))}

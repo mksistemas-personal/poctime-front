@@ -100,11 +100,11 @@ const PersonUpdater: React.FC<PersonUpdaterProps> = ({ visible, personToUpdate: 
                 header={<h4 className="m-0">Cadastrar Pessoa</h4>}
                 className="p-sidebar-sm"
             >
-            <div className="p-fluid grid mt-3 w-full">
-                <div className="col-12 py-2">
-                    <h6 className="mb-3 text-primary border-bottom-1 surface-border pb-2">Dados da Pessoa</h6>
-                    <div className="field mb-4">
-                        <label htmlFor="name" className="text-xs font-bold mb-2 block">Nome da Pessoa</label>
+            <div className="p-fluid grid mt-1 w-full">
+                <div className="col-12 py-0">
+                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2">Dados da Pessoa</h6>
+                    <div className="field mb-2">
+                        <label htmlFor="name" className="text-xs font-bold mb-1 block">Nome da Pessoa</label>
                         <InputText 
                             id="name" 
                             className="p-inputtext-sm" 
@@ -114,8 +114,8 @@ const PersonUpdater: React.FC<PersonUpdaterProps> = ({ visible, personToUpdate: 
                             autoFocus
                         />
                     </div>
-                    <div className="field mb-3">
-                        <label className="text-xs font-bold mb-2 block">Tipo de Documento</label>
+                    <div className="field mb-2">
+                        <label className="text-xs font-bold mb-1 block">Tipo de Documento</label>
                         <SelectButton 
                             value={person.document.type} 
                             options={[
@@ -141,8 +141,8 @@ const PersonUpdater: React.FC<PersonUpdaterProps> = ({ visible, personToUpdate: 
                             }}
                         />
                     </div>
-                    <div className="field mb-4">
-                        <label htmlFor="identifier" className="text-xs font-bold mb-2 block">
+                    <div className="field mb-2">
+                        <label htmlFor="identifier" className="text-xs font-bold mb-1 block">
                             {person.document.type === 'cnpj' ? 'CNPJ' : 'CPF'}
                         </label>
                         <InputMask
