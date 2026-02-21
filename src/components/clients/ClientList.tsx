@@ -144,7 +144,7 @@ const ClientList: React.FC = () => {
                     label="Carregar mais clientes"
                     onClick={() => loadClients(page + 1)}
                     loading={loading}
-                    severity="success" rounded
+                    rounded
                     size="small"
                 />
             ) : (
@@ -203,7 +203,6 @@ const ClientList: React.FC = () => {
                 <Button
                     label="Novo Cliente"
                     icon="pi pi-plus"
-                    severity="success"
                     rounded
                     onClick={() => setDisplayManager(true)}
                     size="small"
@@ -224,25 +223,25 @@ const ClientList: React.FC = () => {
                             Filtros de Pesquisa
                         </span>
                     }>
-                        <div className="p-fluid grid row-gap-2">
+                        <div className="p-fluid grid row-gap-3">
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="name" className="text-xs font-bold text-left block">Nome do Cliente</label>
+                                <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Nome do Cliente</label>
                                 <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Cliente..." />
                             </div>
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="clientEmail" className="text-xs font-bold text-left block">E-mail do Cliente</label>
+                                <label htmlFor="clientEmail" className="text-xs font-bold text-left block mb-2">E-mail do Cliente</label>
                                 <InputText id="clientEmail" value={filters.clientEmail} onChange={(e) => onFilterChange(e, 'clientEmail')} className="p-inputtext-sm" />
                             </div>
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="street" className="text-xs font-bold text-left block">Rua</label>
+                                <label htmlFor="street" className="text-xs font-bold text-left block mb-2">Rua</label>
                                 <InputText id="street" value={filters.street} onChange={(e) => onFilterChange(e, 'street')} className="p-inputtext-sm" />
                             </div>
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="city" className="text-xs font-bold text-left block">Cidade</label>
+                                <label htmlFor="city" className="text-xs font-bold text-left block mb-2">Cidade</label>
                                 <InputText id="city" value={filters.city} onChange={(e) => onFilterChange(e, 'city')} className="p-inputtext-sm" />
                             </div>
                             <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="stateCode" className="text-xs font-bold block text-left">UF</label>
+                                <label htmlFor="stateCode" className="text-xs font-bold block text-left mb-2">UF</label>
                                 <FederalStateSelector 
                                     value={filters.stateCode} 
                                     onChange={(val) => setFilters((prev: any) => ({ ...prev, stateCode: val }))}

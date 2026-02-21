@@ -199,8 +199,8 @@ const ClientManager: React.FC<ClientManagerProps> = ({ visible, onHide, onSave }
 
     const footer = (
         <div className="flex justify-content-end gap-2 mt-4">
-            <Button label="Cancelar" icon="pi pi-times" outlined onClick={handleCancel} severity="danger" rounded size="small" />
-            <Button label="Salvar" icon="pi pi-check" onClick={handleSave} severity="success" rounded size="small"/>
+            <Button label="Cancelar" icon="pi pi-times" outlined onClick={handleCancel} rounded size="small" className="p-button-secondary" />
+            <Button label="Salvar" icon="pi pi-check" onClick={handleSave} rounded size="small"/>
         </div>
     );
 
@@ -215,9 +215,9 @@ const ClientManager: React.FC<ClientManagerProps> = ({ visible, onHide, onSave }
                 header={<h4 className="m-0">Cadastrar Cliente</h4>}
                 className="p-sidebar-sm"
             >
-            <div className="p-fluid grid mt-2 w-full">
+            <div className="p-fluid grid mt-1 w-full">
                 <div className="col-12 py-0">
-                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1">Dados do Cliente</h6>
+                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2">Dados do Cliente</h6>
                     <div className="field mb-2">
                         <label htmlFor="orgName" className="text-xs font-bold mb-1 block">Nome do Cliente</label>
                         {!isManualEntry ? (
@@ -254,7 +254,7 @@ const ClientManager: React.FC<ClientManagerProps> = ({ visible, onHide, onSave }
                             </div>
                         )}
                     </div>
-                    <div className="field mb-1">
+                    <div className="field mb-2">
                         <label className="text-xs font-bold mb-1 block">Tipo de Documento</label>
                         <SelectButton 
                             value={client.clientPerson.document.type} 
@@ -277,7 +277,11 @@ const ClientManager: React.FC<ClientManagerProps> = ({ visible, onHide, onSave }
                                     }));
                                 }
                             }}
-                            className="p-buttonset-sm small"
+                            pt={{
+                                button: {
+                                    className: 'py-1 text-xs px-2'
+                                }
+                            }}
                             disabled={!isManualEntry && client.clientPerson.name !== ''}
                         />
                     </div>
@@ -308,8 +312,8 @@ const ClientManager: React.FC<ClientManagerProps> = ({ visible, onHide, onSave }
                     </div>
                 </div>
 
-                <div className="col-12 py-0 mt-2">
-                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-1">Endereço</h6>
+                <div className="col-12 py-0">
+                    <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2">Endereço</h6>
                     <div className="grid p-0 m-0">
                         <div className="field col-9 p-1 mb-1">
                             <label htmlFor="street" className="text-xs font-bold mb-1 block">Rua</label>
