@@ -14,6 +14,7 @@ import DocumentDisplay from "../shared/document/DocumentDisplay";
 import OrganizationDetails from './OrganizationDetails';
 import OrganizationManager from './OrganizationManager';
 import OrganizationUpdater from './OrganizationUpdater';
+import HeaderList from '../shared/components/list/HeaderList';
 
 const OrganizationList: React.FC = () => {
     const [organizations, setOrganizations] = useState<IOrganization[]>([]);
@@ -195,20 +196,14 @@ const OrganizationList: React.FC = () => {
         );
     };
 
-    const headerTemplate = (options: any) => {
-        return (
-            <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%', padding: '0.5rem 1rem' }}>
-                <span className="text-lg font-bold">Gerenciamento de Organizações</span>
-                <Button
-                    label="Nova Organização"
-                    icon="pi pi-plus"
-                    rounded
-                    onClick={() => setDisplayManager(true)}
-                    size="small"
-                />
-            </div>
-        );
-    };
+    const headerTemplate = (options: any) => (
+        <HeaderList 
+            title="Gerenciamento de Organizações" 
+            buttonLabel="Nova Organização" 
+            onButtonClick={() => setDisplayManager(true)} 
+            options={options} 
+        />
+    );
 
     return (
         <div className="flex flex-column h-full">

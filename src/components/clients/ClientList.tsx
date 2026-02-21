@@ -14,6 +14,7 @@ import {ClientService} from "./ClientService";
 import ClientDetails from "./ClientDetails";
 import ClientManager from "./ClientManager";
 import ClientUpdater from "./ClientUpdater";
+import HeaderList from '../shared/components/list/HeaderList';
 
 
 const ClientList: React.FC = () => {
@@ -196,20 +197,14 @@ const ClientList: React.FC = () => {
         );
     };
 
-    const headerTemplate = (options: any) => {
-        return (
-            <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%', padding: '0.5rem 1rem' }}>
-                <span className="text-lg font-bold">Gerenciamento dos Clientes</span>
-                <Button
-                    label="Novo Cliente"
-                    icon="pi pi-plus"
-                    rounded
-                    onClick={() => setDisplayManager(true)}
-                    size="small"
-                />
-            </div>
-        );
-    };
+    const headerTemplate = (options: any) => (
+        <HeaderList 
+            title="Gerenciamento de Clientes" 
+            buttonLabel="Novo Cliente" 
+            onButtonClick={() => setDisplayManager(true)} 
+            options={options} 
+        />
+    );
 
     return (
         <div className="flex flex-column h-full">

@@ -13,6 +13,7 @@ import EconomicGroupDetails from "./EconomicGroupDetails";
 import EconomicGroupCreator from "./EconomicGroupCreator";
 import EconomicGroupUpdater from "./EconomicGroupUpdater";
 import EconomicGroupOrganizationsSubTable from "./EconomicGroupOrganizationsSubTable";
+import HeaderList from '../shared/components/list/HeaderList';
 
 
 const EconomicGroupList: React.FC = () => {
@@ -116,20 +117,14 @@ const EconomicGroupList: React.FC = () => {
         }
     };
 
-    const headerTemplate = (options: any) => {
-        return (
-            <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%', padding: '0.5rem 1rem' }}>
-                <span className="text-lg font-bold">Gerenciamento de Grupos Economicos</span>
-                <Button
-                    label="Novo Grupo Econômico"
-                    icon="pi pi-plus"
-                    rounded
-                    onClick={() => setDisplayManager(true)}
-                    size="small"
-                />
-            </div>
-        );
-    };
+    const headerTemplate = (options: any) => (
+        <HeaderList 
+            title="Gerenciamento de Grupos Econômicos" 
+            buttonLabel="Novo Grupo Econômico" 
+            onButtonClick={() => setDisplayManager(true)} 
+            options={options} 
+        />
+    );
 
     // Rodapé para controle de carregamento manual/automático
     const footer = (

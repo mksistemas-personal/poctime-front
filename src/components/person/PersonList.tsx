@@ -13,6 +13,7 @@ import {PersonService} from "./PersonService";
 import PersonManager from "./PersonManager";
 import PersonDetails from "./PersonDetails";
 import PersonUpdater from "./PersonUpdater";
+import HeaderList from '../shared/components/list/HeaderList';
 
 
 const PersonList: React.FC = () => {
@@ -195,20 +196,14 @@ const PersonList: React.FC = () => {
         );
     };
 
-    const headerTemplate = (options: any) => {
-        return (
-            <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%', padding: '0.5rem 1rem' }}>
-                <span className="text-lg font-bold">Gerenciamento de Pessoas</span>
-                <Button
-                    label="Nova Pessoa"
-                    icon="pi pi-plus"
-                    rounded
-                    onClick={() => setDisplayManager(true)}
-                    size="small"
-                />
-            </div>
-        );
-    };
+    const headerTemplate = (options: any) => (
+        <HeaderList 
+            title="Gerenciamento de Pessoas" 
+            buttonLabel="Nova Pessoa" 
+            onButtonClick={() => setDisplayManager(true)} 
+            options={options} 
+        />
+    );
 
     return (
         <div className="flex flex-column h-full">
