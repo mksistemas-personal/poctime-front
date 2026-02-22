@@ -17,6 +17,7 @@ import ClientUpdater from "./ClientUpdater";
 import HeaderList from '../shared/components/list/HeaderList';
 import ActionRowList from '../shared/components/list/ActionRowList';
 import {API_CONFIG} from "../../config/ApiConfig";
+import FooterList from "../shared/components/list/FooterList";
 
 
 const ClientList: React.FC = () => {
@@ -135,24 +136,17 @@ const ClientList: React.FC = () => {
         return rowData.clientPerson.document.type === 'cnpj' ? cnpjBodyTemplate(rowData) : cpfBodyTemplate(rowData);
     };
 
-    // Rodapé para controle de carregamento manual/automático
-    const footer = (
-        <div className="flex justify-content-end p-2">
-            {!isLastPage ? (
-                <Button 
-                    type="button" 
-                    icon="pi pi-plus" 
-                    label="Carregar mais clientes"
-                    onClick={() => loadClients(page + 1)}
-                    loading={loading}
-                    rounded
-                    size="small"
-                />
-            ) : (
-                <span className="text-500 italic py-2">Todas os clientes foram carregados</span>
-            )}
-        </div>
-    );
+    const footer = ()=> {
+        return (
+            <FooterList
+                onLoading={loading}
+                isLastPage={isLastPage}
+                onButtonClick={() => loadClients(page + 1)}
+                buttonLabel="Carregar mais clientes"
+                moreDataLabel="Todas os clientes foram carregados"
+            />
+        );
+    };
 
     const actionBodyTemplate = (rowData: IClient) => {
         return (

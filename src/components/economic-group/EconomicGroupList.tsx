@@ -16,6 +16,7 @@ import EconomicGroupOrganizationsSubTable from "./EconomicGroupOrganizationsSubT
 import HeaderList from '../shared/components/list/HeaderList';
 import ActionRowList from '../shared/components/list/ActionRowList';
 import {API_CONFIG} from "../../config/ApiConfig";
+import FooterList from "../shared/components/list/FooterList";
 
 
 const EconomicGroupList: React.FC = () => {
@@ -70,7 +71,7 @@ const EconomicGroupList: React.FC = () => {
     // Carrega a primeira página ao iniciar
     useEffect(() => {
         loadEconomicGroups(0, filters);
-    }, []);
+    }, [loadEconomicGroups, filters]);
 
 
     const onFilterChange = (e: any) => {
@@ -126,24 +127,17 @@ const EconomicGroupList: React.FC = () => {
         />
     );
 
-    // Rodapé para controle de carregamento manual/automático
-    const footer = (
-        <div className="flex justify-content-end p-2">
-            {!isLastPage ? (
-                <Button
-                    type="button"
-                    icon="pi pi-plus"
-                    label="Carregar mais grupos"
-                    onClick={() => loadEconomicGroups(page + 1, filters)}
-                    loading={loading}
-                    rounded
-                    size="small"
-                />
-            ) : (
-                <span className="text-500 italic py-2">Todos os grupos foram carregados</span>
-            )}
-        </div>
-    );
+    const footer = ()=> {
+        return (
+            <FooterList
+                onLoading={loading}
+                isLastPage={isLastPage}
+                onButtonClick={() => loadEconomicGroups(page + 1, filters)}
+                buttonLabel="Carregar mais grupos"
+                moreDataLabel="Todos os grupos foram carregados"
+            />
+        );
+    };
 
     const actionBodyTemplate = (rowData: IEconomicGroup) => {
         return (

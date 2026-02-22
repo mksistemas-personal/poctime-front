@@ -17,6 +17,7 @@ import OrganizationUpdater from './OrganizationUpdater';
 import HeaderList from '../shared/components/list/HeaderList';
 import ActionRowList from '../shared/components/list/ActionRowList';
 import {API_CONFIG} from "../../config/ApiConfig";
+import FooterList from "../shared/components/list/FooterList";
 
 const OrganizationList: React.FC = () => {
     const [organizations, setOrganizations] = useState<IOrganization[]>([]);
@@ -136,23 +137,17 @@ const OrganizationList: React.FC = () => {
     };
 
     // Rodapé para controle de carregamento manual/automático
-    const footer = (
-        <div className="flex justify-content-end p-2">
-            {!isLastPage ? (
-                <Button 
-                    type="button" 
-                    icon="pi pi-plus" 
-                    label="Carregar mais organizações" 
-                    onClick={() => loadOrganizations(page + 1)} 
-                    loading={loading}
-                    rounded
-                    size="small"
-                />
-            ) : (
-                <span className="text-500 italic py-2">Todas as organizações foram carregadas</span>
-            )}
-        </div>
-    );
+    const footer = ()=> {
+        return (
+            <FooterList
+                onLoading={loading}
+                isLastPage={isLastPage}
+                onButtonClick={() => loadOrganizations(page + 1)}
+                buttonLabel="Carregar mais organizações"
+                moreDataLabel="Todas as organizações foram carregadas"
+            />
+        );
+    };
 
     const actionBodyTemplate = (rowData: IOrganization) => {
         return (
