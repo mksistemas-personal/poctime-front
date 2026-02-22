@@ -2,13 +2,12 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import {Panel} from 'primereact/panel';
-import {Button} from 'primereact/button';
 import {InputText} from 'primereact/inputtext';
-import {Accordion, AccordionTab} from 'primereact/accordion';
 import {ConfirmDialog, confirmDialog} from 'primereact/confirmdialog';
 import {Toast} from 'primereact/toast';
 import FederalStateSelector from '../shared/states/FederalStateSelector';
 import {OrganizationService} from './OrganizationService';
+import FilterList from '../shared/components/list/FilterList';
 import {IOrganization} from './OrganizationStructures';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
 import OrganizationDetails from './OrganizationDetails';
@@ -182,51 +181,36 @@ const OrganizationList: React.FC = () => {
             <Toast ref={toast} />
             <ConfirmDialog />
             <Panel headerTemplate={headerTemplate} className="flex flex-column flex-1 min-h-0" pt={{ content: { className: 'flex flex-column flex-1 min-h-0' } }}>
-                <Accordion className="mb-4">
-                    <AccordionTab header={
-                        <span className="flex align-items-center gap-2 text-xs">
-                            <i className="pi pi-filter" style={{ fontSize: '0.75rem' }}></i>
-                            Filtros de Pesquisa
-                        </span>
-                    }>
-                        <div className="p-fluid grid row-gap-3">
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Nome da Organização</label>
-                                <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Organizacao..." />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="respName" className="text-xs font-bold text-left block mb-2">Nome do Responsável</label>
-                                <InputText id="respName" value={filters.respName} onChange={(e) => onFilterChange(e, 'respName')} className="p-inputtext-sm" />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="responsibleEmail" className="text-xs font-bold text-left block mb-2">E-mail do Responsável</label>
-                                <InputText id="responsibleEmail" value={filters.responsibleEmail} onChange={(e) => onFilterChange(e, 'responsibleEmail')} className="p-inputtext-sm" />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="street" className="text-xs font-bold text-left block mb-2">Rua</label>
-                                <InputText id="street" value={filters.street} onChange={(e) => onFilterChange(e, 'street')} className="p-inputtext-sm" />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="city" className="text-xs font-bold text-left block mb-2">Cidade</label>
-                                <InputText id="city" value={filters.city} onChange={(e) => onFilterChange(e, 'city')} className="p-inputtext-sm" />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="stateCode" className="text-xs font-bold block text-left mb-2">UF</label>
-                                <FederalStateSelector 
-                                    value={filters.stateCode} 
-                                    onChange={(val) => setFilters((prev: any) => ({ ...prev, stateCode: val }))}
-                                    className="w-full p-inputtext-sm"
-                                />
-                            </div>
-                            <div className="sm:col-6 flex justify-content-end gap-2 mt-0 align-items-end" style={{ width: 'auto', marginLeft: 'auto' }}>
-                                <div className="flex gap-2">
-                                    <Button label="Limpar" icon="pi pi-filter-slash" outlined onClick={clearFilters} severity="secondary" size="small" rounded style={{ width: 'auto' }} />
-                                    <Button label="Pesquisar" icon="pi pi-search" onClick={applyFilters}  size="small" rounded style={{ width: 'auto' }} />
-                                </div>
-                            </div>
-                        </div>
-                    </AccordionTab>
-                </Accordion>
+                <FilterList onClear={clearFilters} onSearch={applyFilters}>
+                    <div className="field sm:col-6 md:col-2 mb-0">
+                        <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Nome da Organização</label>
+                        <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Organizacao..." />
+                    </div>
+                    <div className="field sm:col-6 md:col-2 mb-0">
+                        <label htmlFor="respName" className="text-xs font-bold text-left block mb-2">Nome do Responsável</label>
+                        <InputText id="respName" value={filters.respName} onChange={(e) => onFilterChange(e, 'respName')} className="p-inputtext-sm" />
+                    </div>
+                    <div className="field sm:col-6 md:col-2 mb-0">
+                        <label htmlFor="responsibleEmail" className="text-xs font-bold text-left block mb-2">E-mail do Responsável</label>
+                        <InputText id="responsibleEmail" value={filters.responsibleEmail} onChange={(e) => onFilterChange(e, 'responsibleEmail')} className="p-inputtext-sm" />
+                    </div>
+                    <div className="field sm:col-6 md:col-2 mb-0">
+                        <label htmlFor="street" className="text-xs font-bold text-left block mb-2">Rua</label>
+                        <InputText id="street" value={filters.street} onChange={(e) => onFilterChange(e, 'street')} className="p-inputtext-sm" />
+                    </div>
+                    <div className="field sm:col-6 md:col-2 mb-0">
+                        <label htmlFor="city" className="text-xs font-bold text-left block mb-2">Cidade</label>
+                        <InputText id="city" value={filters.city} onChange={(e) => onFilterChange(e, 'city')} className="p-inputtext-sm" />
+                    </div>
+                    <div className="field sm:col-6 md:col-2 mb-0">
+                        <label htmlFor="stateCode" className="text-xs font-bold block text-left mb-2">UF</label>
+                        <FederalStateSelector 
+                            value={filters.stateCode} 
+                            onChange={(val) => setFilters((prev: any) => ({ ...prev, stateCode: val }))}
+                            className="w-full p-inputtext-sm"
+                        />
+                    </div>
+                </FilterList>
 
                 <div className="flex-1 min-h-0">
                     <DataTable 
