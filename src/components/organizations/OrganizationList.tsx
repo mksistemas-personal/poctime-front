@@ -54,7 +54,7 @@ const OrganizationList: React.FC = () => {
         try {
             setLoading(true);
             const data = await OrganizationService.getOrganizations(pageNumber, API_CONFIG.ROWS_PER_PAGE, currentFilters);
-
+            console.log(data);
             // Garantir que estamos pegando o objeto de organização, caso venha envolvido
             const content = data.content.map((item: any) => {
                 if (item.organization) {
