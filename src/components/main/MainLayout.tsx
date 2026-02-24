@@ -161,7 +161,7 @@ return (
             style={{ zIndex: 1000, borderRadius: '0rem' }}
         />
 
-        <div className="flex flex-grow-1 min-h-0" style={{ height: 'calc(100vh - 4rem)', position: 'relative' }}>
+        <div className="flex flex-grow-1 min-h-0" style={{ height: 'calc(100vh - 5rem)', position: 'relative' }}>
             <aside
                 className={`flex flex-column surface-section border-right-1 surface-border shadow-1 transition-all transition-duration-300 ${sidebarVisible ? 'w-14rem' : 'w-0 p-0 border-none'}`}
                 style={{ zIndex: 10, height: '100%' }}
@@ -183,7 +183,7 @@ return (
             </aside>
 
             {/* Área de Conteúdo */}
-            <main className="flex-1 p-4 md:p-6 flex flex-column min-h-0 overflow-y-auto">
+            <main className="flex-1 p-4 md:p-6 flex flex-column min-h-0 overflow-hidden">
                 {children}
             </main>
         </div>

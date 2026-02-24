@@ -2,18 +2,21 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import {Panel} from 'primereact/panel';
-import {Button} from 'primereact/button';
 import {InputText} from 'primereact/inputtext';
-import {Accordion, AccordionTab} from 'primereact/accordion';
 import {ConfirmDialog, confirmDialog} from 'primereact/confirmdialog';
 import {Toast} from 'primereact/toast';
 import FederalStateSelector from '../shared/states/FederalStateSelector';
 import {OrganizationService} from './OrganizationService';
+import FilterList from '../shared/components/list/FilterList';
 import {IOrganization} from './OrganizationStructures';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
 import OrganizationDetails from './OrganizationDetails';
 import OrganizationManager from './OrganizationManager';
 import OrganizationUpdater from './OrganizationUpdater';
+import HeaderList from '../shared/components/list/HeaderList';
+import ActionRowList from '../shared/components/list/ActionRowList';
+import {API_CONFIG} from "../../config/ApiConfig";
+import FooterList from "../shared/components/list/FooterList";
 
 const OrganizationList: React.FC = () => {
     const [organizations, setOrganizations] = useState<IOrganization[]>([]);
@@ -45,14 +48,13 @@ const OrganizationList: React.FC = () => {
         isLastPageRef.current = isLastPage;
     }, [isLastPage]);
 
-    const ROWS_PER_PAGE = 10;
 
     const loadOrganizations = useCallback(async (pageNumber: number, currentFilters: any = filters) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
-            const data = await OrganizationService.getOrganizations(pageNumber, ROWS_PER_PAGE, currentFilters);
-
+            const data = await OrganizationService.getOrganizations(pageNumber, API_CONFIG.ROWS_PER_PAGE, currentFilters);
+            console.log(data);
             // Garantir que estamos pegando o objeto de organização, caso venha envolvido
             const content = data.content.map((item: any) => {
                 if (item.organization) {
@@ -134,132 +136,81 @@ const OrganizationList: React.FC = () => {
     };
 
     // Rodapé para controle de carregamento manual/automático
-    const footer = (
-        <div className="flex justify-content-end p-2">
-            {!isLastPage ? (
-                <Button 
-                    type="button" 
-                    icon="pi pi-plus" 
-                    label="Carregar mais organizações" 
-                    onClick={() => loadOrganizations(page + 1)} 
-                    loading={loading}
-                    rounded
-                    size="small"
-                />
-            ) : (
-                <span className="text-500 italic py-2">Todas as organizações foram carregadas</span>
-            )}
-        </div>
-    );
+    const footer = ()=> {
+        return (
+            <FooterList
+                onLoading={loading}
+                isLastPage={isLastPage}
+                onButtonClick={() => loadOrganizations(page + 1)}
+                buttonLabel="Carregar mais organizações"
+                moreDataLabel="Todas as organizações foram carregadas"
+            />
+        );
+    };
 
     const actionBodyTemplate = (rowData: IOrganization) => {
         return (
-            <div className="flex gap-1">
-                <Button
-                    icon="pi pi-search"
-                    rounded
-                    text
-                    severity="info"
-                    onClick={() => {
-                        setSelectedOrganization(rowData);
-                        setDisplayDetails(true);
-                    }}
-                    tooltip="Ver detalhes"
-                    size="small"
-                    className="p-1"
-                />
-                <Button
-                    icon="pi pi-pencil"
-                    rounded
-                    text
-                    severity="warning"
-                    onClick={() => {
-                        setOrganizationToEdit(rowData);
-                        setDisplayUpdater(true);
-                    }}
-                    tooltip="Editar organização"
-                    size="small"
-                    className="p-1"
-                />
-                <Button
-                    icon="pi pi-trash"
-                    rounded
-                    text
-                    severity="danger"
-                    onClick={() => confirmDelete(rowData)}
-                    tooltip="Excluir organização"
-                    size="small"
-                    className="p-1"
-                />
-            </div>
+            <ActionRowList
+                rowData={rowData}
+                onView={(data) => {
+                    setSelectedOrganization(data);
+                    setDisplayDetails(true);
+                }}
+                onEdit={(data) => {
+                    setOrganizationToEdit(data);
+                    setDisplayUpdater(true);
+                }}
+                onDelete={(data) => confirmDelete(data)}
+                editTooltip="Editar organização"
+                deleteTooltip="Excluir organização"
+            />
         );
     };
 
-    const headerTemplate = (options: any) => {
-        return (
-            <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%', padding: '0.5rem 1rem' }}>
-                <span className="text-lg font-bold">Gerenciamento de Organizações</span>
-                <Button
-                    label="Nova Organização"
-                    icon="pi pi-plus"
-                    rounded
-                    onClick={() => setDisplayManager(true)}
-                    size="small"
-                />
-            </div>
-        );
-    };
+    const headerTemplate = (options: any) => (
+        <HeaderList 
+            title="Gerenciamento de Organizações" 
+            buttonLabel="Nova Organização" 
+            onButtonClick={() => setDisplayManager(true)} 
+            options={options} 
+        />
+    );
 
     return (
         <div className="flex flex-column h-full">
             <Toast ref={toast} />
             <ConfirmDialog />
             <Panel headerTemplate={headerTemplate} className="flex flex-column flex-1 min-h-0" pt={{ content: { className: 'flex flex-column flex-1 min-h-0' } }}>
-                <Accordion className="mb-4">
-                    <AccordionTab header={
-                        <span className="flex align-items-center gap-2 text-xs">
-                            <i className="pi pi-filter" style={{ fontSize: '0.75rem' }}></i>
-                            Filtros de Pesquisa
-                        </span>
-                    }>
-                        <div className="p-fluid grid row-gap-3">
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Nome da Organização</label>
-                                <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Organizacao..." />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="respName" className="text-xs font-bold text-left block mb-2">Nome do Responsável</label>
-                                <InputText id="respName" value={filters.respName} onChange={(e) => onFilterChange(e, 'respName')} className="p-inputtext-sm" />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="responsibleEmail" className="text-xs font-bold text-left block mb-2">E-mail do Responsável</label>
-                                <InputText id="responsibleEmail" value={filters.responsibleEmail} onChange={(e) => onFilterChange(e, 'responsibleEmail')} className="p-inputtext-sm" />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="street" className="text-xs font-bold text-left block mb-2">Rua</label>
-                                <InputText id="street" value={filters.street} onChange={(e) => onFilterChange(e, 'street')} className="p-inputtext-sm" />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="city" className="text-xs font-bold text-left block mb-2">Cidade</label>
-                                <InputText id="city" value={filters.city} onChange={(e) => onFilterChange(e, 'city')} className="p-inputtext-sm" />
-                            </div>
-                            <div className="field sm:col-6 md:col-2 mb-0">
-                                <label htmlFor="stateCode" className="text-xs font-bold block text-left mb-2">UF</label>
-                                <FederalStateSelector 
-                                    value={filters.stateCode} 
-                                    onChange={(val) => setFilters((prev: any) => ({ ...prev, stateCode: val }))}
-                                    className="w-full p-inputtext-sm"
-                                />
-                            </div>
-                            <div className="sm:col-6 flex justify-content-end gap-2 mt-0 align-items-end" style={{ width: 'auto', marginLeft: 'auto' }}>
-                                <div className="flex gap-2">
-                                    <Button label="Limpar" icon="pi pi-filter-slash" outlined onClick={clearFilters} severity="secondary" size="small" rounded style={{ width: 'auto' }} />
-                                    <Button label="Pesquisar" icon="pi pi-search" onClick={applyFilters}  size="small" rounded style={{ width: 'auto' }} />
-                                </div>
-                            </div>
-                        </div>
-                    </AccordionTab>
-                </Accordion>
+                <FilterList onClear={clearFilters} onSearch={applyFilters}>
+                    <div className="field sm:col-6 md:col-2 mb-0">
+                        <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Nome da Organização</label>
+                        <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Organizacao..." />
+                    </div>
+                    <div className="field sm:col-6 md:col-2 mb-0">
+                        <label htmlFor="respName" className="text-xs font-bold text-left block mb-2">Nome do Responsável</label>
+                        <InputText id="respName" value={filters.respName} onChange={(e) => onFilterChange(e, 'respName')} className="p-inputtext-sm" />
+                    </div>
+                    <div className="field sm:col-6 md:col-2 mb-0">
+                        <label htmlFor="responsibleEmail" className="text-xs font-bold text-left block mb-2">E-mail do Responsável</label>
+                        <InputText id="responsibleEmail" value={filters.responsibleEmail} onChange={(e) => onFilterChange(e, 'responsibleEmail')} className="p-inputtext-sm" />
+                    </div>
+                    <div className="field sm:col-6 md:col-2 mb-0">
+                        <label htmlFor="street" className="text-xs font-bold text-left block mb-2">Rua</label>
+                        <InputText id="street" value={filters.street} onChange={(e) => onFilterChange(e, 'street')} className="p-inputtext-sm" />
+                    </div>
+                    <div className="field sm:col-6 md:col-2 mb-0">
+                        <label htmlFor="city" className="text-xs font-bold text-left block mb-2">Cidade</label>
+                        <InputText id="city" value={filters.city} onChange={(e) => onFilterChange(e, 'city')} className="p-inputtext-sm" />
+                    </div>
+                    <div className="field sm:col-6 md:col-2 mb-0">
+                        <label htmlFor="stateCode" className="text-xs font-bold block text-left mb-2">UF</label>
+                        <FederalStateSelector 
+                            value={filters.stateCode} 
+                            onChange={(val) => setFilters((prev: any) => ({ ...prev, stateCode: val }))}
+                            className="w-full p-inputtext-sm"
+                        />
+                    </div>
+                </FilterList>
 
                 <div className="flex-1 min-h-0">
                     <DataTable 
@@ -271,7 +222,7 @@ const OrganizationList: React.FC = () => {
                         loading={loading}
                         footer={footer}
                         scrollable 
-                        scrollHeight="525px" // Ajusta ao tamanho do container
+                        scrollHeight="calc(100vh - 22rem)" 
                         className="p-datatable-sm h-full flex-1 text-sm"
                         stripedRows
                         tableStyle={{ minWidth: '80rem' }}

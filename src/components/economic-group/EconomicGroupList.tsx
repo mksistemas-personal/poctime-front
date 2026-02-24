@@ -1,10 +1,9 @@
 import React, {useCallback, useEffect, useState} from "react";
 import {Toast} from "primereact/toast";
 import {confirmDialog, ConfirmDialog} from "primereact/confirmdialog";
-import {Button} from "primereact/button";
 import {Panel} from "primereact/panel";
-import {Accordion, AccordionTab} from "primereact/accordion";
 import {InputText} from "primereact/inputtext";
+import FilterList from "../shared/components/list/FilterList";
 import {IEconomicGroup} from "./EconomicGroupStructures";
 import {EconomicGroupService} from "./EconomicGroupService";
 import {Column} from "primereact/column";
@@ -13,6 +12,10 @@ import EconomicGroupDetails from "./EconomicGroupDetails";
 import EconomicGroupCreator from "./EconomicGroupCreator";
 import EconomicGroupUpdater from "./EconomicGroupUpdater";
 import EconomicGroupOrganizationsSubTable from "./EconomicGroupOrganizationsSubTable";
+import HeaderList from '../shared/components/list/HeaderList';
+import ActionRowList from '../shared/components/list/ActionRowList';
+import {API_CONFIG} from "../../config/ApiConfig";
+import FooterList from "../shared/components/list/FooterList";
 
 
 const EconomicGroupList: React.FC = () => {
@@ -40,13 +43,11 @@ const EconomicGroupList: React.FC = () => {
         isLastPageRef.current = isLastPage;
     }, [isLastPage]);
 
-    const ROWS_PER_PAGE = 10;
-
     const loadEconomicGroups = useCallback(async (pageNumber: number, currentFilters?: string) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
-            const data = await EconomicGroupService.getAllEconomicGroups(pageNumber, ROWS_PER_PAGE, currentFilters !== undefined ? currentFilters : filters);
+            const data = await EconomicGroupService.getAllEconomicGroups(pageNumber, API_CONFIG.ROWS_PER_PAGE, currentFilters !== undefined ? currentFilters : filters);
 
             const content = data.content.map((item: any) => {
                 if (item.economicGroup) {
@@ -69,7 +70,7 @@ const EconomicGroupList: React.FC = () => {
     // Carrega a primeira página ao iniciar
     useEffect(() => {
         loadEconomicGroups(0, filters);
-    }, []);
+    }, [loadEconomicGroups, filters]);
 
 
     const onFilterChange = (e: any) => {
@@ -116,80 +117,43 @@ const EconomicGroupList: React.FC = () => {
         }
     };
 
-    const headerTemplate = (options: any) => {
+    const headerTemplate = (options: any) => (
+        <HeaderList 
+            title="Gerenciamento de Grupos Econômicos" 
+            buttonLabel="Novo Grupo Econômico" 
+            onButtonClick={() => setDisplayManager(true)} 
+            options={options} 
+        />
+    );
+
+    const footer = ()=> {
         return (
-            <div className={options.className} style={{ justifyContent: 'space-between', display: 'flex', alignItems: 'center', width: '100%', padding: '0.5rem 1rem' }}>
-                <span className="text-lg font-bold">Gerenciamento de Grupos Economicos</span>
-                <Button
-                    label="Novo Grupo Econômico"
-                    icon="pi pi-plus"
-                    rounded
-                    onClick={() => setDisplayManager(true)}
-                    size="small"
-                />
-            </div>
+            <FooterList
+                onLoading={loading}
+                isLastPage={isLastPage}
+                onButtonClick={() => loadEconomicGroups(page + 1, filters)}
+                buttonLabel="Carregar mais grupos"
+                moreDataLabel="Todos os grupos foram carregados"
+            />
         );
     };
 
-    // Rodapé para controle de carregamento manual/automático
-    const footer = (
-        <div className="flex justify-content-end p-2">
-            {!isLastPage ? (
-                <Button
-                    type="button"
-                    icon="pi pi-plus"
-                    label="Carregar mais grupos"
-                    onClick={() => loadEconomicGroups(page + 1, filters)}
-                    loading={loading}
-                    rounded
-                    size="small"
-                />
-            ) : (
-                <span className="text-500 italic py-2">Todos os grupos foram carregados</span>
-            )}
-        </div>
-    );
-
     const actionBodyTemplate = (rowData: IEconomicGroup) => {
         return (
-            <div className="flex gap-1">
-                <Button
-                    icon="pi pi-search"
-                    rounded
-                    text
-                    severity="info"
-                    onClick={() => {
-                        setSelectedEconomicGroup(rowData);
-                        setDisplayDetails(true);
-                    }}
-                    tooltip="Ver detalhes"
-                    size="small"
-                    className="p-1"
-                />
-                <Button
-                    icon="pi pi-pencil"
-                    rounded
-                    text
-                    severity="warning"
-                    onClick={() => {
-                        setEconomicGroupToEdit(rowData);
-                        setDisplayUpdater(true);
-                    }}
-                    tooltip="Editar organização"
-                    size="small"
-                    className="p-1"
-                />
-                <Button
-                    icon="pi pi-trash"
-                    rounded
-                    text
-                    severity="danger"
-                    onClick={() => confirmDelete(rowData)}
-                    tooltip="Excluir organização"
-                    size="small"
-                    className="p-1"
-                />
-            </div>
+            <ActionRowList
+                rowData={rowData}
+                onView={(data) => {
+                    setSelectedEconomicGroup(data);
+                    setDisplayDetails(true);
+                }}
+                onEdit={(data) => {
+                    setEconomicGroupToEdit(data);
+                    setDisplayUpdater(true);
+                }}
+                onDelete={(data) => confirmDelete(data)}
+                editTooltip="Editar grupo econômico"
+                deleteTooltip="Excluir grupo econômico"
+            />
         );
     };
 
@@ -206,27 +170,12 @@ const EconomicGroupList: React.FC = () => {
             <Toast ref={toast} />
             <ConfirmDialog />
             <Panel headerTemplate={headerTemplate} className="flex flex-column flex-1 min-h-0" pt={{ content: { className: 'flex flex-column flex-1 min-h-0' } }}>
-                <Accordion className="mb-2">
-                    <AccordionTab header={
-                        <span className="flex align-items-center gap-2 text-xs">
-                            <i className="pi pi-filter" style={{ fontSize: '0.75rem' }}></i>
-                            Filtros de Pesquisa
-                        </span>
-                    }>
-                        <div className="p-fluid grid row-gap-3">
-                            <div className="field sm:col-6 md:col-4 mb-0">
-                                <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Termo de Pesquisa</label>
-                                <InputText id="name" value={filters} onChange={onFilterChange} onKeyDown={onKeyDown} className="p-inputtext-sm" placeholder="Pesquisar por nome ou descrição..." />
-                            </div>
-                            <div className="sm:col-6 flex justify-content-end gap-2 mt-0 align-items-end" style={{ width: 'auto', marginLeft: 'auto' }}>
-                                <div className="flex gap-2">
-                                    <Button label="Limpar" icon="pi pi-filter-slash" outlined onClick={clearFilters} severity="secondary" size="small" rounded style={{ width: 'auto' }} />
-                                    <Button label="Pesquisar" icon="pi pi-search" onClick={applyFilters}  size="small" rounded style={{ width: 'auto' }} />
-                                </div>
-                            </div>
-                        </div>
-                    </AccordionTab>
-                </Accordion>
+                <FilterList onClear={clearFilters} onSearch={applyFilters} className="mb-2">
+                    <div className="field sm:col-6 md:col-4 mb-0">
+                        <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Termo de Pesquisa</label>
+                        <InputText id="name" value={filters} onChange={onFilterChange} onKeyDown={onKeyDown} className="p-inputtext-sm" placeholder="Pesquisar por nome ou descrição..." />
+                    </div>
+                </FilterList>
                 <div className="flex-1 min-h-0">
                     <DataTable
                         value={economicGroups}
@@ -240,7 +189,7 @@ const EconomicGroupList: React.FC = () => {
                         loading={loading}
                         footer={footer}
                         scrollable
-                        scrollHeight="525px"
+                        scrollHeight="calc(100vh - 20rem)"
                         className="p-datatable-sm h-full flex-1 text-sm"
                         stripedRows
                         tableStyle={{ minWidth: '50rem' }}
