@@ -70,12 +70,12 @@ const ClientList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, []);
 
     // Carrega a primeira página ao iniciar
     useEffect(() => {
         loadClients(0);
-    }, [loadClients]);
+    }, []);
 
 
     const onFilterChange = (e: any, field: string) => {

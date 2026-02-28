@@ -72,12 +72,12 @@ const OrganizationList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, []);
 
     // Carrega a primeira página ao iniciar
     useEffect(() => {
         loadOrganizations(0);
-    }, [loadOrganizations]);
+    }, []);
 
 
     const onFilterChange = (e: any, field: string) => {

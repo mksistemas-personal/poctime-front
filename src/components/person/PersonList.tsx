@@ -71,12 +71,12 @@ const PersonList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [appliedFilters]);
+    }, []);
 
     // Carrega a primeira página ao iniciar
     useEffect(() => {
         loadPeople(0);
-    }, [loadPeople]);
+    }, []);
 
 
     const onFilterChange = (e: any, field: string) => {
@@ -86,6 +86,7 @@ const PersonList: React.FC = () => {
 
     const applyFilters = () => {
         setAppliedFilters(filters);
+        loadPeople(0, filters);
     };
 
     const clearFilters = () => {
@@ -95,6 +96,7 @@ const PersonList: React.FC = () => {
         };
         setFilters(emptyFilters);
         setAppliedFilters(emptyFilters);
+        loadPeople(0, emptyFilters);
     };
 
     const confirmDelete = (person: IPerson) => {

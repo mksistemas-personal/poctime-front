@@ -65,12 +65,12 @@ const EconomicGroupList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, []);
 
     // Carrega a primeira página ao iniciar
     useEffect(() => {
-        loadEconomicGroups(0, filters);
-    }, [loadEconomicGroups, filters]);
+        loadEconomicGroups(0);
+    }, []);
 
 
     const onFilterChange = (e: any) => {
