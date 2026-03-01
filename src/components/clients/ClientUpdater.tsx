@@ -5,9 +5,10 @@ import {Button} from 'primereact/button';
 import {Toast} from 'primereact/toast';
 import {InputMask} from "primereact/inputmask";
 import {Controller, useForm} from 'react-hook-form';
+import {zodResolver} from "@hookform/resolvers/zod";
 import {IZipCodeResponse, ZipCodeService} from '../shared/zipcode/ZipCodeService';
 import FederalStateSelector from '../shared/states/FederalStateSelector';
-import {IClient} from "./ClientStructures";
+import {ClientFormData, clientSchema, IClient} from "./ClientStructures";
 import {ClientService} from "./ClientService";
 
 interface ClientManagerProps {
@@ -35,8 +36,9 @@ const ClientUpdater: React.FC<ClientManagerProps> = ({ visible, onHide, clientIn
         }
     };
 
-    const { control, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<IClient>({
-        defaultValues: emptyClient
+    const { control, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<ClientFormData>({
+        defaultValues: emptyClient as ClientFormData,
+        resolver: zodResolver(clientSchema)
     });
 
     const toast = useRef<Toast>(null);
@@ -88,9 +90,9 @@ const ClientUpdater: React.FC<ClientManagerProps> = ({ visible, onHide, clientIn
         }
     };
 
-    const handleSave = async (data: IClient) => {
+    const handleSave = async (data: ClientFormData) => {
         try {
-            const savedOrg = await ClientService.saveClient(data);
+            const savedOrg = await ClientService.saveClient(data as IClient);
             toast.current?.show({
                 severity: 'success',
                 summary: 'Sucesso',
@@ -178,12 +180,6 @@ const ClientUpdater: React.FC<ClientManagerProps> = ({ visible, onHide, clientIn
                         <Controller
                             name="clientEmail"
                             control={control}
-                            rules={{ 
-                                pattern: { 
-                                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, 
-                                    message: 'E-mail inválido' 
-                                } 
-                            }}
                             render={({ field, fieldState }) => (
                                 <>
                                     <InputText 
@@ -207,8 +203,11 @@ const ClientUpdater: React.FC<ClientManagerProps> = ({ visible, onHide, clientIn
                             <Controller
                                 name="address.street"
                                 control={control}
-                                render={({ field }) => (
-                                    <InputText {...field} id="street" className="p-inputtext-sm" />
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <InputText {...field} id="street" className={`p-inputtext-sm ${fieldState.invalid ? 'p-invalid' : ''}`} />
+                                        {fieldState.error && <small className="p-error block mt-1" style={{ fontSize: '0.7rem' }}>{fieldState.error.message}</small>}
+                                    </>
                                 )}
                             />
                         </div>
@@ -217,8 +216,11 @@ const ClientUpdater: React.FC<ClientManagerProps> = ({ visible, onHide, clientIn
                             <Controller
                                 name="address.number"
                                 control={control}
-                                render={({ field }) => (
-                                    <InputText {...field} id="number" className="p-inputtext-sm" />
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <InputText {...field} id="number" className={`p-inputtext-sm ${fieldState.invalid ? 'p-invalid' : ''}`} />
+                                        {fieldState.error && <small className="p-error block mt-1" style={{ fontSize: '0.7rem' }}>{fieldState.error.message}</small>}
+                                    </>
                                 )}
                             />
                         </div>
@@ -227,20 +229,35 @@ const ClientUpdater: React.FC<ClientManagerProps> = ({ visible, onHide, clientIn
                             <Controller
                                 name="address.neighborhood"
                                 control={control}
-                                render={({ field }) => (
-                                    <InputText {...field} id="neighborhood" className="p-inputtext-sm" />
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <InputText {...field} id="neighborhood" className={`p-inputtext-sm ${fieldState.invalid ? 'p-invalid' : ''}`} />
+                                        {fieldState.error && <small className="p-error block mt-1" style={{ fontSize: '0.7rem' }}>{fieldState.error.message}</small>}
+                                    </>
                                 )}
                             />
                         </div>
                         <div className="field col-5 p-1 mb-1">
                             <label htmlFor="zipCode" className="text-xs font-bold mb-1 block">CEP</label>
-                            <InputMask 
-                                id="zipCode"
-                                mask="99999-999"
-                                className="w-full p-inputtext-sm"
-                                value={zipCode}
-                                onChange={(e) => handleZipCodeChange(e.value || '')}
-                                placeholder="00000-000"
+                            <Controller
+                                name="address.zipCode"
+                                control={control}
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <InputMask 
+                                            {...field}
+                                            id="zipCode"
+                                            mask="99999-999"
+                                            className={`w-full p-inputtext-sm ${fieldState.invalid ? 'p-invalid' : ''}`}
+                                            onChange={(e) => {
+                                                field.onChange(e);
+                                                handleZipCodeChange(e.value || '');
+                                            }}
+                                            placeholder="00000-000"
+                                        />
+                                        {fieldState.error && <small className="p-error block mt-1" style={{ fontSize: '0.7rem' }}>{fieldState.error.message}</small>}
+                                    </>
+                                )}
                             />
                         </div>
                         <div className="field col-9 p-1 mb-1">
@@ -248,8 +265,11 @@ const ClientUpdater: React.FC<ClientManagerProps> = ({ visible, onHide, clientIn
                             <Controller
                                 name="address.city"
                                 control={control}
-                                render={({ field }) => (
-                                    <InputText {...field} id="city" className="p-inputtext-sm" />
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <InputText {...field} id="city" className={`p-inputtext-sm ${fieldState.invalid ? 'p-invalid' : ''}`} />
+                                        {fieldState.error && <small className="p-error block mt-1" style={{ fontSize: '0.7rem' }}>{fieldState.error.message}</small>}
+                                    </>
                                 )}
                             />
                         </div>
@@ -258,12 +278,15 @@ const ClientUpdater: React.FC<ClientManagerProps> = ({ visible, onHide, clientIn
                             <Controller
                                 name="address.stateCode"
                                 control={control}
-                                render={({ field }) => (
-                                    <FederalStateSelector 
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        className="w-full p-inputtext-sm"
-                                    />
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <FederalStateSelector 
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            className={`w-full p-inputtext-sm ${fieldState.invalid ? 'p-invalid' : ''}`}
+                                        />
+                                        {fieldState.error && <small className="p-error block mt-1" style={{ fontSize: '0.7rem' }}>{fieldState.error.message}</small>}
+                                    </>
                                 )}
                             />
                         </div>
