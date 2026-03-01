@@ -9,7 +9,7 @@ import {Controller, useForm} from 'react-hook-form';
 import FederalStateSelector from '../shared/states/FederalStateSelector';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
 import FilterList from '../shared/components/list/FilterList';
-import {IClient} from "./ClientStructures";
+import {ClientFilter, IClient} from "./ClientStructures";
 import {ClientService} from "./ClientService";
 import ClientDetails from "./ClientDetails";
 import ClientManager from "./ClientManager";
@@ -32,14 +32,17 @@ const ClientList: React.FC = () => {
     const [clientToEdit, setClientToEdit] = useState<IClient | null>(null);
     const toast = React.useRef<Toast>(null);
 
-    const { control, handleSubmit, reset } = useForm<any>({
-        defaultValues: {
-            name: '',
-            clientEmail: '',
-            street: '',
-            city: '',
-            stateCode: ''
-        }
+    let emptyFilter: ClientFilter;
+    emptyFilter = {
+        name: '',
+        clientEmail: '',
+        street: '',
+        city: '',
+        stateCode: ''
+    };
+
+    const { control, handleSubmit, reset } = useForm<ClientFilter>({
+        defaultValues: emptyFilter as ClientFilter
     });
 
     const loadingRef = React.useRef(loading);
@@ -53,13 +56,12 @@ const ClientList: React.FC = () => {
         isLastPageRef.current = isLastPage;
     }, [isLastPage]);
 
-    const loadClients = useCallback(async (pageNumber: number, currentFilters: any) => {
+    const loadClients = useCallback(async (pageNumber: number, currentFilters: ClientFilter) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
             const data = await ClientService.getClients(pageNumber, API_CONFIG.ROWS_PER_PAGE, currentFilters);
 
-            // Garantir que estamos pegando o objeto de organização, caso venha envolvido
             const content = data.content.map((item: any) => {
                 if (item.client) {
                     return { ...item.client, id: item.client.id  };
@@ -67,7 +69,6 @@ const ClientList: React.FC = () => {
                 return { ...item, id: item.id };
             });
 
-            // Acumula os dados se não for a primeira página
             setClients(prev => pageNumber === 0 ? content : [...prev, ...content]);
             setIsLastPage(data.last);
             setPage(pageNumber);
@@ -78,32 +79,18 @@ const ClientList: React.FC = () => {
         }
     }, []);
 
-    // Carrega a primeira página ao iniciar
     useEffect(() => {
-        loadClients(0, {
-            name: '',
-            clientEmail: '',
-            street: '',
-            city: '',
-            stateCode: ''
-        });
-    }, [loadClients]);
+        void loadClients(0, emptyFilter);
+    }, [loadClients, emptyFilter]);
 
 
-    const applyFilters = (data: any) => {
-        loadClients(0, data);
+    const applyFilters = async (data: ClientFilter) => {
+        await loadClients(0, data);
     };
 
     const clearFilters = () => {
-        const emptyFilters = {
-            name: '',
-            clientEmail: '',
-            street: '',
-            city: '',
-            stateCode: ''
-        };
-        reset(emptyFilters);
-        loadClients(0, emptyFilters);
+        reset(emptyFilter);
+        void loadClients(0, emptyFilter);
     };
 
     const confirmDelete = (client: IClient) => {
@@ -123,13 +110,7 @@ const ClientList: React.FC = () => {
             setLoading(true);
             await ClientService.deleteClient(id);
             toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'Cliente excluído com sucesso', life: 3000 });
-            loadClients(0, {
-                name: '',
-                clientEmail: '',
-                street: '',
-                city: '',
-                stateCode: ''
-            }); // Recarrega a lista
+            void loadClients(0, emptyFilter);
         } catch (error: any) {
             toast.current?.show({ severity: 'error', summary: 'Erro', detail: error.message || 'Erro ao excluir cliente', life: 3000 });
         } finally {
@@ -154,13 +135,7 @@ const ClientList: React.FC = () => {
             <FooterList
                 onLoading={loading}
                 isLastPage={isLastPage}
-                onButtonClick={() => loadClients(page + 1, {
-                    name: '',
-                    clientEmail: '',
-                    street: '',
-                    city: '',
-                    stateCode: ''
-                })}
+                onButtonClick={() => void loadClients(page + 1, emptyFilter)}
                 buttonLabel="Carregar mais clientes"
                 moreDataLabel="Todas os clientes foram carregados"
             />
@@ -295,13 +270,7 @@ const ClientList: React.FC = () => {
                 visible={displayManager}
                 onHide={() => setDisplayManager(false)}
                 onSave={(newOrg) => {
-                        loadClients(0, {
-                            name: '',
-                            clientEmail: '',
-                            street: '',
-                            city: '',
-                            stateCode: ''
-                        });
+                        void loadClients(0, emptyFilter);
                     }}
                 />
 
@@ -313,13 +282,7 @@ const ClientList: React.FC = () => {
                     setClientToEdit(null);
                 }}
                 onSave={(updatedOrg) => {
-                    loadClients(0, {
-                        name: '',
-                        clientEmail: '',
-                        street: '',
-                        city: '',
-                        stateCode: ''
-                    });
+                    void loadClients(0, emptyFilter);
                 }}
             />
 

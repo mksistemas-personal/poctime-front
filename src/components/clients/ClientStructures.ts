@@ -46,6 +46,14 @@ export interface IClientRequest {
     clientEmail: string;
 }
 
+export interface ClientFilter {
+    name: string;
+    clientEmail: string;
+    street: string;
+    city: string;
+    stateCode: string;
+}
+
 export const clientSchema = z.object({
     clientId: z.string().optional().nullable(),
     clientPerson: z.object({
