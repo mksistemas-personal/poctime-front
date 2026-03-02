@@ -20,6 +20,14 @@ import {API_CONFIG} from "../../config/ApiConfig";
 import FooterList from "../shared/components/list/FooterList";
 
 
+const emptyFilter: ClientFilter = {
+    name: '',
+    clientEmail: '',
+    street: '',
+    city: '',
+    stateCode: ''
+};
+
 const ClientList: React.FC = () => {
     const [clients, setClients] = useState<IClient[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
@@ -31,15 +39,6 @@ const ClientList: React.FC = () => {
     const [displayUpdater, setDisplayUpdater] = useState<boolean>(false);
     const [clientToEdit, setClientToEdit] = useState<IClient | null>(null);
     const toast = React.useRef<Toast>(null);
-
-    let emptyFilter: ClientFilter;
-    emptyFilter = {
-        name: '',
-        clientEmail: '',
-        street: '',
-        city: '',
-        stateCode: ''
-    };
 
     const { control, handleSubmit, reset } = useForm<ClientFilter>({
         defaultValues: emptyFilter as ClientFilter
@@ -81,16 +80,16 @@ const ClientList: React.FC = () => {
 
     useEffect(() => {
         void loadClients(0, emptyFilter);
-    }, [loadClients, emptyFilter]);
+    }, [loadClients]);
 
 
     const applyFilters = async (data: ClientFilter) => {
-        await loadClients(0, data);
+        loadClients(0, data);
     };
 
     const clearFilters = () => {
         reset(emptyFilter);
-        void loadClients(0, emptyFilter);
+        loadClients(0, emptyFilter);
     };
 
     const confirmDelete = (client: IClient) => {
@@ -110,7 +109,7 @@ const ClientList: React.FC = () => {
             setLoading(true);
             await ClientService.deleteClient(id);
             toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'Cliente excluído com sucesso', life: 3000 });
-            void loadClients(0, emptyFilter);
+            loadClients(0, emptyFilter);
         } catch (error: any) {
             toast.current?.show({ severity: 'error', summary: 'Erro', detail: error.message || 'Erro ao excluir cliente', life: 3000 });
         } finally {
@@ -135,7 +134,7 @@ const ClientList: React.FC = () => {
             <FooterList
                 onLoading={loading}
                 isLastPage={isLastPage}
-                onButtonClick={() => void loadClients(page + 1, emptyFilter)}
+                onButtonClick={() => loadClients(page + 1, emptyFilter)}
                 buttonLabel="Carregar mais clientes"
                 moreDataLabel="Todas os clientes foram carregados"
             />
@@ -270,7 +269,7 @@ const ClientList: React.FC = () => {
                 visible={displayManager}
                 onHide={() => setDisplayManager(false)}
                 onSave={(newOrg) => {
-                        void loadClients(0, emptyFilter);
+                    loadClients(0, emptyFilter);
                     }}
                 />
 
@@ -282,7 +281,7 @@ const ClientList: React.FC = () => {
                     setClientToEdit(null);
                 }}
                 onSave={(updatedOrg) => {
-                    void loadClients(0, emptyFilter);
+                    loadClients(0, emptyFilter);
                 }}
             />
 
