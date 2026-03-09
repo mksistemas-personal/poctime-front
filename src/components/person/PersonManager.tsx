@@ -5,8 +5,11 @@ import {Button} from 'primereact/button';
 import {Toast} from 'primereact/toast';
 import {InputMask} from "primereact/inputmask";
 import {SelectButton} from "primereact/selectbutton";
-import {IPerson} from "./PersonStructures";
+import {IPerson, PersonFormData, personSchema} from "./PersonStructures";
 import {PersonService} from "./PersonService";
+import {Controller, useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {classNames} from "primereact/utils";
 
 interface PersonManagerProps {
     visible: boolean;
@@ -15,50 +18,36 @@ interface PersonManagerProps {
 }
 
 const PersonManager: React.FC<PersonManagerProps> = ({ visible, onHide, onSave }) => {
-    const emptyPerson: IPerson = {
-        id: '',
+    const emptyPerson: PersonFormData = {
         name: '',
         document: { type: 'cnpj', identifier: '', country: 'BR', complement: '' },
     };
 
-    const [person, setPerson] = useState<IPerson>(emptyPerson);
+    const {
+        control,
+        handleSubmit,
+        reset,
+        setValue,
+        watch,
+        formState: { errors }
+    } = useForm<PersonFormData>({
+        resolver: zodResolver(personSchema),
+        defaultValues: emptyPerson
+    });
+
+    const [loading, setLoading] = useState(false);
     const toast = useRef<Toast>(null);
+    const documentType = watch('document.type');
 
-    const onInputChange = (e: React.ChangeEvent<HTMLInputElement>, path: string) => {
-        const val = e.target.value;
-        const keys = path.split('.');
-        
-        setPerson(prev => {
-            const newState = { ...prev };
-            let current: any = newState;
-            for (let i = 0; i < keys.length - 1; i++) {
-                current = current[keys[i]];
-            }
-            current[keys[keys.length - 1]] = val;
-            return { ...newState };
-        });
-    };
-    
-
-    const handleSave = async () => {
-        if (!person.name || !person.document.identifier) {
-            toast.current?.show({
-                severity: 'warn',
-                summary: 'Atenção',
-                detail: 'Por favor, preencha o nome e o documento.',
-                life: 3000
-            });
-            return;
-        }
-
+    const handleSave = async (data: PersonFormData) => {
         try {
-            const dataToSave = { ...person };
-            const savedPerson = await PersonService.savePerson(dataToSave);
+            setLoading(true);
+            const savedPerson = await PersonService.savePerson(data as IPerson);
             if (onSave) {
                 onSave(savedPerson);
             }
             onHide(); // Fecha a barra lateral após sucesso
-            setPerson(emptyPerson); // Reseta o formulário
+            reset(emptyPerson); // Reseta o formulário
         } catch (error: any) {
             console.error("Erro ao salvar pessoa:", error);
             toast.current?.show({
@@ -67,18 +56,20 @@ const PersonManager: React.FC<PersonManagerProps> = ({ visible, onHide, onSave }
                 detail: error.message || 'Erro ao salvar pessoa',
                 life: 3000
             });
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleCancel = () => {
-        setPerson(emptyPerson);
+        reset(emptyPerson);
         onHide();
     };
 
     const footer = (
         <div className="flex justify-content-end gap-2 mt-4">
             <Button label="Cancelar" icon="pi pi-times" outlined onClick={handleCancel} rounded size="small" className="p-button-secondary" />
-            <Button label="Salvar" icon="pi pi-check" onClick={handleSave} rounded size="small"/>
+            <Button label="Salvar" icon="pi pi-check" onClick={() => handleSubmit(handleSave)()} loading={loading} rounded size="small"/>
         </div>
     );
 
@@ -98,53 +89,69 @@ const PersonManager: React.FC<PersonManagerProps> = ({ visible, onHide, onSave }
                     <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2">Dados da Pessoa</h6>
                     <div className="field mb-2">
                         <label htmlFor="name" className="text-xs font-bold mb-1 block">Nome da Pessoa</label>
-                        <InputText 
-                            id="name" 
-                            className="p-inputtext-sm" 
-                            value={person.name}
-                            onChange={(e) => onInputChange(e, 'name')}
-                            placeholder="Digite o nome"
-                            autoFocus
+                        <Controller
+                            name="name"
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <>
+                                    <InputText 
+                                        {...field}
+                                        id="name" 
+                                        className={classNames('p-inputtext-sm', { 'p-invalid': fieldState.error })}
+                                        placeholder="Digite o nome"
+                                        autoFocus
+                                    />
+                                    {fieldState.error && <small className="p-error">{fieldState.error.message}</small>}
+                                </>
+                            )}
                         />
                     </div>
                     <div className="field mb-2">
                         <label className="text-xs font-bold mb-1 block">Tipo de Documento</label>
-                        <SelectButton 
-                            value={person.document.type} 
-                            options={[
-                                {label: 'CNPJ', value: 'cnpj'},
-                                {label: 'CPF', value: 'cpf'}
-                            ]} 
-                            onChange={(e) => {
-                                if (e.value) {
-                                    setPerson(prev => ({
-                                        ...prev,
-                                        document: {
-                                            ...prev.document,
-                                            type: e.value,
-                                            identifier: '' // Reseta o valor ao mudar o tipo
+                        <Controller
+                            name="document.type"
+                            control={control}
+                            render={({ field }) => (
+                                <SelectButton 
+                                    {...field}
+                                    options={[
+                                        {label: 'CNPJ', value: 'cnpj'},
+                                        {label: 'CPF', value: 'cpf'}
+                                    ]} 
+                                    onChange={(e) => {
+                                        if (e.value) {
+                                            field.onChange(e.value);
+                                            setValue('document.identifier', ''); // Reseta o valor ao mudar o tipo
                                         }
-                                    }));
-                                }
-                            }}
-                            pt={{
-                                button: {
-                                    className: 'py-1 text-xs px-2'
-                                }
-                            }}
+                                    }}
+                                    pt={{
+                                        button: {
+                                            className: 'py-1 text-xs px-2'
+                                        }
+                                    }}
+                                />
+                            )}
                         />
                     </div>
                     <div className="field mb-2">
-                        <label htmlFor="identifier" className="text-xs font-bold mb-1 block">
-                            {person.document.type === 'cnpj' ? 'CNPJ' : 'CPF'}
+                        <label htmlFor="document.identifier" className="text-xs font-bold mb-1 block">
+                            {documentType === 'cnpj' ? 'CNPJ' : 'CPF'}
                         </label>
-                        <InputMask
-                            id="identifier" 
-                            className="p-inputtext-sm"
-                            mask={person.document.type === 'cnpj' ? "99.999.999/9999-99" : "999.999.999-99"}
-                            value={person.document.identifier}
-                            placeholder={person.document.type === 'cnpj' ? "00.000.000/0000-00" : "000.000.000-00"}
-                            onChange={(e) => onInputChange(e as any, 'document.identifier')}
+                        <Controller
+                            name="document.identifier"
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <>
+                                    <InputMask
+                                        {...field}
+                                        id="document.identifier" 
+                                        className={classNames('p-inputtext-sm', { 'p-invalid': fieldState.error })}
+                                        mask={documentType === 'cnpj' ? "99.999.999/9999-99" : "999.999.999-99"}
+                                        placeholder={documentType === 'cnpj' ? "00.000.000/0000-00" : "000.000.000-00"}
+                                    />
+                                    {fieldState.error && <small className="p-error">{fieldState.error.message}</small>}
+                                </>
+                            )}
                         />
                     </div>
                 </div>
