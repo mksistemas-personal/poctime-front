@@ -9,9 +9,12 @@ import {EconomicGroupService} from './EconomicGroupService';
 import {IOrganizationView} from '../organizations/OrganizationStructures';
 import DocumentDisplay from '../shared/document/DocumentDisplay';
 import {Toast} from 'primereact/toast';
-import {IEconomicGroup} from "./EconomicGroupStructures";
+import {EconomicGroupFormData, economicGroupSchema, IEconomicGroup} from "./EconomicGroupStructures";
 import OrganizationSimpleSelector from "../organizations/OrganizationSimpleSelector";
 import {OrganizationService} from "../organizations/OrganizationService";
+import {Controller, useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {classNames} from "primereact/utils";
 
 interface EconomicGroupUpdaterProps {
     visible: boolean;
@@ -22,42 +25,50 @@ interface EconomicGroupUpdaterProps {
 
 const EconomicGroupUpdater: React.FC<EconomicGroupUpdaterProps> = ({ visible, onHide, economicGroup: initialEconomicGroup, onSaveSuccess }) => {
 
-    const emptyEconomicGroup: IEconomicGroup = {
-        id: '',
-        name: '',
-        description: '',
-        organizationIds: []
-    };
-
-    const [economicGroup, setEconomicGroup] = useState<IEconomicGroup>(emptyEconomicGroup);
     const [selectedOrganizations, setSelectedOrganizations] = useState<IOrganizationView[]>([]);
     const [loading, setLoading] = useState(false);
     const toast = React.useRef<Toast>(null);
 
+    const {
+        control,
+        handleSubmit,
+        formState: { errors },
+        reset,
+        setValue
+    } = useForm<EconomicGroupFormData>({
+        resolver: zodResolver(economicGroupSchema),
+        defaultValues: {
+            name: '',
+            description: '',
+            organizationIds: []
+        }
+    });
+
     useEffect(() => {
         if (initialEconomicGroup && visible) {
-            setEconomicGroup({...initialEconomicGroup});
+            reset({
+                name: initialEconomicGroup.name || '',
+                description: initialEconomicGroup.description || '',
+                organizationIds: initialEconomicGroup.organizationIds || []
+            });
+            if (initialEconomicGroup.organizationIds?.length > 0) {
+                loadOrganizations(initialEconomicGroup.organizationIds);
+            } else {
+                setSelectedOrganizations([]);
+            }
         } else if (!visible) {
             clearData();
         }
-    }, [initialEconomicGroup, visible]);
+    }, [initialEconomicGroup, visible, reset]);
 
-    useEffect(() => {
-        if (visible && economicGroup?.id && economicGroup?.organizationIds?.length > 0) {
-            loadOrganizations();
-        } else if (visible) {
-            setSelectedOrganizations([]);
-        }
-    }, [visible, economicGroup.id, economicGroup.organizationIds]);
-
-    const loadOrganizations = async () => {
-        if (!economicGroup.organizationIds || economicGroup.organizationIds.length === 0) {
+    const loadOrganizations = async (organizationIds: string[]) => {
+        if (!organizationIds || organizationIds.length === 0) {
             setSelectedOrganizations([]);
             return;
         }
         setLoading(true);
         try {
-            const response = await OrganizationService.getOrganizationsFromList(economicGroup.organizationIds);
+            const response = await OrganizationService.getOrganizationsFromList(organizationIds);
             setSelectedOrganizations(response.content || []);
         } catch (error) {
             console.error("Erro ao carregar organizações do grupo econômico", error);
@@ -78,34 +89,37 @@ const EconomicGroupUpdater: React.FC<EconomicGroupUpdaterProps> = ({ visible, on
             toast.current?.show({ severity: 'warn', summary: 'Atenção', detail: 'Organização já adicionada', life: 3000 });
             return;
         }
-        setSelectedOrganizations([...selectedOrganizations, org]);
+        
+        const newSelected = [...selectedOrganizations, org];
+        setSelectedOrganizations(newSelected);
+        setValue('organizationIds', newSelected.map(o => o.id));
     };
 
     const handleRemoveOrganization = (orgToRemove: IOrganizationView) => {
         if (!orgToRemove || !orgToRemove.id) return;
 
-        setSelectedOrganizations((prevOrganizations) => {
-            return prevOrganizations.filter(org => org.id !== orgToRemove.id);
-        });
+        const newSelected = selectedOrganizations.filter(org => org.id !== orgToRemove.id);
+        setSelectedOrganizations(newSelected);
+        setValue('organizationIds', newSelected.map(o => o.id));
     };
 
     function clearData() {
-        setEconomicGroup(emptyEconomicGroup);
+        reset({
+            name: '',
+            description: '',
+            organizationIds: []
+        });
         setSelectedOrganizations([]);
     }
 
-    const handleSave = async () => {
-        if (!economicGroup.name.trim()) {
-            toast.current?.show({ severity: 'error', summary: 'Erro', detail: 'O nome é obrigatório', life: 3000 });
-            return;
-        }
-
+    const handleSave = async (data: EconomicGroupFormData) => {
         setLoading(true);
         try {
             const groupToSave = {
-                ...economicGroup,
-                organizationIds: selectedOrganizations.map(org => org.id)
-            };
+                ...initialEconomicGroup,
+                ...data
+            } as IEconomicGroup;
+
             const savedGroup = await EconomicGroupService.saveEconomicGroup(groupToSave);
             
             toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'Grupo Econômico atualizado com sucesso', life: 3000 });
@@ -145,7 +159,7 @@ const EconomicGroupUpdater: React.FC<EconomicGroupUpdaterProps> = ({ visible, on
     const footer = (
         <div className="flex justify-content-end gap-2 mt-4">
             <Button label="Cancelar" icon="pi pi-times" outlined onClick={handleCancel} rounded size="small" className="p-button-secondary"/>
-            <Button label="Salvar" icon="pi pi-check" onClick={handleSave} rounded size="small"/>
+            <Button label="Salvar" icon="pi pi-check" onClick={handleSubmit(handleSave)} rounded size="small" loading={loading}/>
         </div>
     );
 
@@ -165,24 +179,37 @@ const EconomicGroupUpdater: React.FC<EconomicGroupUpdaterProps> = ({ visible, on
                         <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2">Dados do Grupo Econômico</h6>
                         <div className="field mb-2">
                             <label htmlFor="name" className="text-xs font-bold mb-1 block">Nome*</label>
-                            <InputText 
-                                id="name" 
-                                value={economicGroup.name}
-                                onChange={(e) => setEconomicGroup({...economicGroup, name: e.target.value})} 
-                                className="p-inputtext-sm" 
-                                placeholder="Digite o nome do grupo"
+                            <Controller
+                                name="name"
+                                control={control}
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <InputText 
+                                            id={field.name}
+                                            {...field}
+                                            className={classNames('p-inputtext-sm', { 'p-invalid': fieldState.error })}
+                                            placeholder="Digite o nome do grupo"
+                                        />
+                                        {fieldState.error && <small className="p-error">{fieldState.error.message}</small>}
+                                    </>
+                                )}
                             />
                         </div>
 
                         <div className="field mb-2">
                             <label htmlFor="description" className="text-xs font-bold mb-1 block">Descrição</label>
-                            <InputTextarea 
-                                id="description"
-                                value={economicGroup.description}
-                                onChange={(e) => setEconomicGroup({...economicGroup, description: e.target.value})} 
-                                rows={3} 
-                                className="p-inputtext-sm" 
-                                placeholder="Digite uma descrição opcional"
+                            <Controller
+                                name="description"
+                                control={control}
+                                render={({ field }) => (
+                                    <InputTextarea 
+                                        id={field.name}
+                                        {...field}
+                                        rows={3} 
+                                        className="p-inputtext-sm" 
+                                        placeholder="Digite uma descrição opcional"
+                                    />
+                                )}
                             />
                         </div>
                     </div>
