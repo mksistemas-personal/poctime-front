@@ -1,4 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
+import {Controller, useForm} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
 import {DataTable} from 'primereact/datatable';
 import {Column} from 'primereact/column';
 import {Panel} from 'primereact/panel';
@@ -7,7 +9,7 @@ import {ConfirmDialog, confirmDialog} from 'primereact/confirmdialog';
 import {Toast} from 'primereact/toast';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
 import FilterList from '../shared/components/list/FilterList';
-import {IPerson} from "./PersonStructures";
+import {IPerson, PersonFilterData, personFilterSchema} from "./PersonStructures";
 import {PersonService} from "./PersonService";
 import PersonManager from "./PersonManager";
 import PersonDetails from "./PersonDetails";
@@ -29,14 +31,14 @@ const PersonList: React.FC = () => {
     const [displayUpdater, setDisplayUpdater] = useState<boolean>(false);
     const [personToEdit, setPersonToEdit] = useState<IPerson | null>(null);
     const toast = React.useRef<Toast>(null);
-    const [filters, setFilters] = useState<any>({
-        name: '',
-        identifier: ''
+    const {control, handleSubmit, reset, getValues} = useForm<PersonFilterData>({
+        resolver: zodResolver(personFilterSchema),
+        defaultValues: {
+            name: '',
+            identifier: ''
+        }
     });
-    const [appliedFilters, setAppliedFilters] = useState<any>({
-        name: '',
-        identifier: ''
-    });
+
     const loadingRef = React.useRef(loading);
     const isLastPageRef = React.useRef(isLastPage);
 
@@ -48,7 +50,7 @@ const PersonList: React.FC = () => {
         isLastPageRef.current = isLastPage;
     }, [isLastPage]);
 
-    const loadPeople = useCallback(async (pageNumber: number, currentFilters: any = appliedFilters) => {
+    const loadPeople = useCallback(async (pageNumber: number, currentFilters: PersonFilterData = getValues()) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
@@ -71,30 +73,21 @@ const PersonList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [appliedFilters]);
+    }, []);
 
     // Carrega a primeira página ao iniciar
     useEffect(() => {
         loadPeople(0);
-    }, [loadPeople]);
+    }, []);
 
 
-    const onFilterChange = (e: any, field: string) => {
-        const value = e.target.value;
-        setFilters((prev: any) => ({ ...prev, [field]: value }));
-    };
-
-    const applyFilters = () => {
-        setAppliedFilters(filters);
+    const applyFilters = (data: PersonFilterData) => {
+        loadPeople(0, data);
     };
 
     const clearFilters = () => {
-        const emptyFilters = {
-            name: '',
-            identifier: ''
-        };
-        setFilters(emptyFilters);
-        setAppliedFilters(emptyFilters);
+        reset();
+        loadPeople(0, getValues());
     };
 
     const confirmDelete = (person: IPerson) => {
@@ -114,7 +107,7 @@ const PersonList: React.FC = () => {
             setLoading(true);
             await PersonService.deletePerson(id);
             toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'Pessoa excluída com sucesso', life: 3000 });
-            loadPeople(0, appliedFilters); // Recarrega a lista
+            loadPeople(0); // Recarrega a lista
         } catch (error: any) {
             toast.current?.show({ severity: 'error', summary: 'Erro', detail: error.message || 'Erro ao excluir pessoa', life: 3000 });
         } finally {
@@ -179,14 +172,46 @@ const PersonList: React.FC = () => {
             <Toast ref={toast} />
             <ConfirmDialog />
             <Panel headerTemplate={headerTemplate} className="flex flex-column flex-1 min-h-0" pt={{ content: { className: 'flex flex-column flex-1 min-h-0' } }}>
-                <FilterList onClear={clearFilters} onSearch={applyFilters}>
+                <FilterList onClear={clearFilters} onSearch={() => void handleSubmit(applyFilters)()}>
                     <div className="field sm:col-6 md:col-2 mb-0">
                         <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Nome da Pessoa</label>
-                        <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Pessoa..." />
+                        <Controller
+                            name="name"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText 
+                                    {...field}
+                                    id="name" 
+                                    className="p-inputtext-sm" 
+                                    placeholder="Ex: Pessoa..." 
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            void handleSubmit(applyFilters)();
+                                        }
+                                    }}
+                                />
+                            )}
+                        />
                     </div>
                     <div className="field sm:col-6 md:col-2 mb-0">
                         <label htmlFor="identifier" className="text-xs font-bold text-left block mb-2">Documento</label>
-                        <InputText id="identifier" value={filters.identifier} onChange={(e) => onFilterChange(e, 'identifier')} className="p-inputtext-sm" placeholder="CPF/CNPJ..." />
+                        <Controller
+                            name="identifier"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText 
+                                    {...field}
+                                    id="identifier" 
+                                    className="p-inputtext-sm" 
+                                    placeholder="CPF/CNPJ..." 
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            void handleSubmit(applyFilters)();
+                                        }
+                                    }}
+                                />
+                            )}
+                        />
                     </div>
                 </FilterList>
 
@@ -226,7 +251,7 @@ const PersonList: React.FC = () => {
                 visible={displayManager}
                 onHide={() => setDisplayManager(false)}
                 onSave={() => {
-                        loadPeople(0, appliedFilters);
+                        loadPeople(0);
                     }}
                 />
 
@@ -238,7 +263,7 @@ const PersonList: React.FC = () => {
                     setPersonToEdit(null);
                 }}
                 onSave={(updatedOrg) => {
-                    loadPeople(0, appliedFilters);
+                    loadPeople(0);
                 }}
             />
 

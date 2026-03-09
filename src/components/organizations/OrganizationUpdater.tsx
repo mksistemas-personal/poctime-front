@@ -4,11 +4,13 @@ import {InputText} from 'primereact/inputtext';
 import {Button} from 'primereact/button';
 import {Toast} from 'primereact/toast';
 import {OrganizationService} from './OrganizationService';
-import {IOrganization} from './OrganizationStructures';
+import {IOrganization, OrganizationFormData, organizationSchema} from './OrganizationStructures';
 import OrganizationSelector from './OrganizationSelector';
 import {InputMask} from "primereact/inputmask";
 import {IZipCodeResponse, ZipCodeService} from '../shared/zipcode/ZipCodeService';
 import FederalStateSelector from '../shared/states/FederalStateSelector';
+import {Controller, useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
 
 interface OrganizationUpdaterProps {
     visible: boolean;
@@ -36,15 +38,19 @@ const OrganizationUpdater: React.FC<OrganizationUpdaterProps> = ({ visible, onHi
         }
     };
 
-    const [organization, setOrganization] = useState<IOrganization>(emptyOrganization);
+    const { control, handleSubmit, reset, setValue, getValues, formState: { errors } } = useForm<OrganizationFormData>({
+        resolver: zodResolver(organizationSchema),
+        defaultValues: emptyOrganization
+    });
+
     const [selectedRespProj, setSelectedRespProj] = useState<any>(null);
     const [isRespManualEntry, setIsRespManualEntry] = useState(false);
-    const [emailError, setEmailError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const toast = useRef<Toast>(null);
 
     useEffect(() => {
-        if (initialOrganization) {
-            setOrganization(initialOrganization);
+        if (initialOrganization && visible) {
+            reset(initialOrganization);
             
             // Inicializar o responsável selecionado no dropdown
             if (initialOrganization.responsiblePerson) {
@@ -61,141 +67,65 @@ const OrganizationUpdater: React.FC<OrganizationUpdaterProps> = ({ visible, onHi
             }
             
             setIsRespManualEntry(false);
-            setEmailError(null);
         }
-    }, [initialOrganization, visible]);
-
-    const validateEmail = (email: string) => {
-        if (!email) {
-            setEmailError(null);
-            return true;
-        }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const isValid = emailRegex.test(email);
-        setEmailError(isValid ? null : 'E-mail inválido');
-        return isValid;
-    };
-
-    const onInputChange = (e: React.ChangeEvent<HTMLInputElement>, path: string) => {
-        const val = e.target.value;
-        const keys = path.split('.');
-        
-        if (path === 'responsibleEmail') {
-            validateEmail(val);
-        }
-        
-        setOrganization(prev => {
-            const newState = { ...prev };
-            let current: any = newState;
-            for (let i = 0; i < keys.length - 1; i++) {
-                current = current[keys[i]];
-            }
-            current[keys[keys.length - 1]] = val;
-            return { ...newState };
-        });
-    };
+    }, [initialOrganization, visible, reset]);
 
     const handleRespSelect = (e: any) => {
         const selected = e.value;
         setSelectedRespProj(selected);
-        setEmailError(null);
         if (selected) {
-            setOrganization(prev => ({
-                ...prev,
-                responsiblePerson: {
-                    ...prev.responsiblePerson,
-                    id: selected.personId || '',
-                    name: selected.personName,
-                    document: { 
-                        ...prev.responsiblePerson.document, 
-                        identifier: selected.documentNumber 
-                    }
-                }
-            }));
+            setValue('responsiblePerson.id', selected.personId || '');
+            setValue('responsiblePerson.name', selected.personName);
+            setValue('responsiblePerson.document.identifier', selected.documentNumber);
             setIsRespManualEntry(false);
         } else {
-            setOrganization(prev => ({
-                ...prev,
-                responsiblePerson: emptyOrganization.responsiblePerson
-            }));
+            setValue('responsiblePerson', emptyOrganization.responsiblePerson);
         }
     };
 
     const handleZipCodeChange = async (zipData: IZipCodeResponse | string) => {
         if (typeof zipData === 'string') {
             const cleanZip = zipData.replace(/\D/g, '');
-            
-            setOrganization(prev => ({
-                ...prev,
-                address: {
-                    ...prev.address,
-                    zipCode: zipData
-                }
-            }));
+            setValue('address.zipCode', zipData);
 
             if (cleanZip.length === 8) {
                 try {
                     const response = await ZipCodeService.getZipCode(cleanZip);
                     if (response) {
-                        setOrganization(prev => ({
-                            ...prev,
-                            address: {
-                                ...prev.address,
-                                street: prev.address.street || response.street,
-                                neighborhood: prev.address.neighborhood || response.neighborhood,
-                                city: prev.address.city || response.city,
-                                stateCode: prev.address.stateCode || response.state
-                            }
-                        }));
+                        const currentAddress = getValues('address');
+                        setValue('address.street', currentAddress.street || response.street, { shouldValidate: true });
+                        setValue('address.neighborhood', currentAddress.neighborhood || response.neighborhood, { shouldValidate: true });
+                        setValue('address.city', currentAddress.city || response.city, { shouldValidate: true });
+                        setValue('address.stateCode', currentAddress.stateCode || response.state, { shouldValidate: true });
                     }
                 } catch (error) {
                     console.error("Erro ao buscar CEP:", error);
                 }
             }
         } else {
-            setOrganization(prev => ({
-                ...prev,
-                address: {
-                    ...prev.address,
-                    zipCode: zipData.zipCode,
-                    street: prev.address.street || zipData.street,
-                    neighborhood: prev.address.neighborhood || zipData.neighborhood,
-                    city: prev.address.city || zipData.city,
-                    stateCode: prev.address.stateCode || zipData.state
-                }
-            }));
+            const currentAddress = getValues('address');
+            setValue('address.zipCode', zipData.zipCode);
+            setValue('address.street', currentAddress.street || zipData.street, { shouldValidate: true });
+            setValue('address.neighborhood', currentAddress.neighborhood || zipData.neighborhood, { shouldValidate: true });
+            setValue('address.city', currentAddress.city || zipData.city, { shouldValidate: true });
+            setValue('address.stateCode', currentAddress.stateCode || zipData.state, { shouldValidate: true });
         }
     };
 
     const handleRespAddNew = () => {
-        setOrganization(prev => ({
-            ...prev,
-            responsiblePerson: emptyOrganization.responsiblePerson
-        }));
+        setValue('responsiblePerson', emptyOrganization.responsiblePerson);
         setSelectedRespProj(null);
         setIsRespManualEntry(true);
-        setEmailError(null);
     };
 
-    const handleSave = async () => {
-        if (organization.responsibleEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(organization.responsibleEmail)) {
-            toast.current?.show({
-                severity: 'warn',
-                summary: 'Atenção',
-                detail: 'Por favor, insira um e-mail válido para o responsável.',
-                life: 3000
-            });
-            return;
-        }
-
+    const handleSave = async (data: OrganizationFormData) => {
+        setLoading(true);
         try {
-            const dataToSave = { ...organization };
-            const savedOrg = await OrganizationService.saveOrganization(dataToSave);
+            const savedOrg = await OrganizationService.saveOrganization(data as IOrganization);
             if (onSave) {
                 onSave(savedOrg);
             }
             onHide();
-            setEmailError(null);
         } catch (error: any) {
             console.error("Erro ao atualizar organização:", error);
             toast.current?.show({
@@ -204,18 +134,20 @@ const OrganizationUpdater: React.FC<OrganizationUpdaterProps> = ({ visible, onHi
                 detail: error.message || 'Erro ao atualizar organização',
                 life: 3000
             });
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleCancel = () => {
-        setEmailError(null);
+        reset(initialOrganization || emptyOrganization);
         onHide();
     };
 
     const footer = (
         <div className="flex justify-content-end gap-2 mt-4">
             <Button label="Cancelar" icon="pi pi-times" outlined onClick={handleCancel} rounded size="small" className="p-button-secondary" />
-            <Button label="Salvar" icon="pi pi-check" onClick={handleSave} rounded size="small"/>
+            <Button label="Salvar" icon="pi pi-check" onClick={handleSubmit(handleSave)} loading={loading} rounded size="small"/>
         </div>
     );
 
@@ -235,22 +167,34 @@ const OrganizationUpdater: React.FC<OrganizationUpdaterProps> = ({ visible, onHi
                     <h6 className="mb-2 text-primary border-bottom-1 surface-border pb-2">Dados da Organização</h6>
                     <div className="field mb-2">
                         <label htmlFor="orgName" className="text-xs font-bold mb-1 block">Nome da Organização</label>
-                        <InputText 
-                            id="orgName" 
-                            className="p-inputtext-sm" 
-                            value={organization.organizationPerson.name} 
-                            disabled={true}
+                        <Controller
+                            name="organizationPerson.name"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText 
+                                    id="orgName" 
+                                    className="p-inputtext-sm" 
+                                    value={field.value} 
+                                    disabled={true}
+                                />
+                            )}
                         />
                     </div>
                     <div className="field mb-2">
                         <label htmlFor="cnpj" className="text-xs font-bold mb-1 block">CNPJ</label>
-                        <InputMask
-                            id="cnpj" 
-                            className="p-inputtext-sm"
-                            mask="99.999.999/9999-99"
-                            value={organization.organizationPerson.document.identifier}
-                            placeholder="00.000.000/0000-00"
-                            disabled={true}
+                        <Controller
+                            name="organizationPerson.document.identifier"
+                            control={control}
+                            render={({ field }) => (
+                                <InputMask
+                                    id="cnpj" 
+                                    className="p-inputtext-sm"
+                                    mask="99.999.999/9999-99"
+                                    value={field.value}
+                                    placeholder="00.000.000/0000-00"
+                                    disabled={true}
+                                />
+                            )}
                         />
                     </div>
                 </div>
@@ -269,13 +213,19 @@ const OrganizationUpdater: React.FC<OrganizationUpdaterProps> = ({ visible, onHi
                             />
                         ) : (
                             <div className="flex gap-2">
-                                <InputText 
-                                    id="respName" 
-                                    className="p-inputtext-sm flex-1" 
-                                    value={organization.responsiblePerson.name} 
-                                    onChange={(e) => onInputChange(e, 'responsiblePerson.name')} 
-                                    placeholder="Digite o nome do responsável"
-                                    autoFocus
+                                <Controller
+                                    name="responsiblePerson.name"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <InputText 
+                                            id="respName" 
+                                            className={`p-inputtext-sm flex-1 ${errors.responsiblePerson?.name ? 'p-invalid' : ''}`}
+                                            value={field.value} 
+                                            onChange={(e) => field.onChange(e.target.value)}
+                                            placeholder="Digite o nome do responsável"
+                                            autoFocus
+                                        />
+                                    )}
                                 />
                                 <Button 
                                     icon="pi pi-search" 
@@ -283,52 +233,63 @@ const OrganizationUpdater: React.FC<OrganizationUpdaterProps> = ({ visible, onHi
                                     onClick={() => {
                                         setIsRespManualEntry(false);
                                         // Restaurar o responsável selecionado anteriormente ou limpar se não houver
-                                        if (organization.responsiblePerson && organization.responsiblePerson.id) {
+                                        const currentResp = getValues('responsiblePerson');
+                                        if (currentResp && currentResp.id) {
                                             setSelectedRespProj({
-                                                personId: organization.responsiblePerson.id,
-                                                personName: organization.responsiblePerson.name,
-                                                documentNumber: organization.responsiblePerson.document.identifier,
-                                                documentType: organization.responsiblePerson.document.type,
+                                                personId: currentResp.id,
+                                                personName: currentResp.name,
+                                                documentNumber: currentResp.document.identifier,
+                                                documentType: currentResp.document.type,
                                                 id: '',
-                                                city: organization.address?.city || ''
+                                                city: getValues('address.city') || ''
                                             });
                                         } else {
                                             setSelectedRespProj(null);
                                         }
-                                        setOrganization(prev => ({
-                                            ...prev,
-                                            responsiblePerson: organization.responsiblePerson.id ? organization.responsiblePerson : emptyOrganization.responsiblePerson
-                                        }));
                                     }} 
                                     tooltip="Voltar"
                                     tooltipOptions={{ className: 'text-xs', position: 'top', mouseTrack: true, mouseTrackTop: 15 }}
                                 />
                             </div>
                         )}
+                        {errors.responsiblePerson?.name && <small className="p-error block mt-1 text-xs">{errors.responsiblePerson.name.message}</small>}
                     </div>
                     <div className="field mb-2">
                         <label htmlFor="cpf" className="text-xs font-bold mb-1 block">CPF</label>
-                        <InputMask 
-                            id="cpf" 
-                            className="p-inputtext-sm" 
-                            mask="999.999.999-99"
-                            value={organization.responsiblePerson.document.identifier} 
-                            placeholder="000.000.000-00"
-                            onChange={(e) => onInputChange(e as any, 'responsiblePerson.document.identifier')} 
-                            disabled={!isRespManualEntry && organization.responsiblePerson.name !== ''}
+                        <Controller
+                            name="responsiblePerson.document.identifier"
+                            control={control}
+                            render={({ field }) => (
+                                <InputMask 
+                                    id="cpf" 
+                                    className={`p-inputtext-sm ${errors.responsiblePerson?.document?.identifier ? 'p-invalid' : ''}`}
+                                    mask="999.999.999-99"
+                                    value={field.value} 
+                                    placeholder="000.000.000-00"
+                                    onChange={(e) => field.onChange(e.value || '')} 
+                                    disabled={!isRespManualEntry && getValues('responsiblePerson.name') !== ''}
+                                />
+                            )}
                         />
+                        {errors.responsiblePerson?.document?.identifier && <small className="p-error block mt-1 text-xs">{errors.responsiblePerson.document.identifier.message}</small>}
                     </div>
                     <div className="field mb-2">
                         <label htmlFor="respEmail" className="text-xs font-bold mb-1 block">E-mail</label>
-                        <InputText 
-                            id="respEmail"
-                            keyfilter="email"
-                            className={`p-inputtext-sm ${emailError ? 'p-invalid' : ''}`} 
-                            value={organization.responsibleEmail} 
-                            onChange={(e) => onInputChange(e, 'responsibleEmail')} 
-                            placeholder="exemplo@email.com"
+                        <Controller
+                            name="responsibleEmail"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText 
+                                    id="respEmail"
+                                    keyfilter="email"
+                                    className={`p-inputtext-sm ${errors.responsibleEmail ? 'p-invalid' : ''}`} 
+                                    value={field.value} 
+                                    onChange={(e) => field.onChange(e.target.value)} 
+                                    placeholder="exemplo@email.com"
+                                />
+                            )}
                         />
-                        {emailError && <small className="p-error block mt-1 text-xs">{emailError}</small>}
+                        {errors.responsibleEmail && <small className="p-error block mt-1 text-xs">{errors.responsibleEmail.message}</small>}
                     </div>
                 </div>
 
@@ -337,46 +298,104 @@ const OrganizationUpdater: React.FC<OrganizationUpdaterProps> = ({ visible, onHi
                     <div className="grid p-0 m-0">
                         <div className="field col-9 p-1 mb-2">
                             <label htmlFor="street" className="text-xs font-bold mb-1 block">Rua</label>
-                            <InputText id="street" className="p-inputtext-sm" value={organization.address.street} onChange={(e) => onInputChange(e, 'address.street')} placeholder="Rua, Avenida, etc." />
+                            <Controller
+                                name="address.street"
+                                control={control}
+                                render={({ field }) => (
+                                    <InputText 
+                                        id="street" 
+                                        className={`p-inputtext-sm ${errors.address?.street ? 'p-invalid' : ''}`} 
+                                        value={field.value} 
+                                        onChange={(e) => field.onChange(e.target.value)} 
+                                        placeholder="Rua, Avenida, etc." 
+                                    />
+                                )}
+                            />
+                            {errors.address?.street && <small className="p-error block mt-1 text-xs">{errors.address.street.message}</small>}
                         </div>
                         <div className="field col-3 p-1 mb-2">
                             <label htmlFor="number" className="text-xs font-bold mb-1 block">Nº</label>
-                            <InputText id="number" className="p-inputtext-sm" value={organization.address.number} onChange={(e) => onInputChange(e, 'address.number')} placeholder="123" />
+                            <Controller
+                                name="address.number"
+                                control={control}
+                                render={({ field }) => (
+                                    <InputText 
+                                        id="number" 
+                                        className={`p-inputtext-sm ${errors.address?.number ? 'p-invalid' : ''}`} 
+                                        value={field.value} 
+                                        onChange={(e) => field.onChange(e.target.value)} 
+                                        placeholder="123" 
+                                    />
+                                )}
+                            />
+                            {errors.address?.number && <small className="p-error block mt-1 text-xs">{errors.address.number.message}</small>}
                         </div>
                         <div className="field col-7 p-1 mb-2">
                             <label htmlFor="neighborhood" className="text-xs font-bold mb-1 block">Bairro</label>
-                            <InputText id="neighborhood" className="p-inputtext-sm" value={organization.address.neighborhood} onChange={(e) => onInputChange(e, 'address.neighborhood')} placeholder="Bairro" />
+                            <Controller
+                                name="address.neighborhood"
+                                control={control}
+                                render={({ field }) => (
+                                    <InputText 
+                                        id="neighborhood" 
+                                        className={`p-inputtext-sm ${errors.address?.neighborhood ? 'p-invalid' : ''}`} 
+                                        value={field.value} 
+                                        onChange={(e) => field.onChange(e.target.value)} 
+                                        placeholder="Bairro" 
+                                    />
+                                )}
+                            />
+                            {errors.address?.neighborhood && <small className="p-error block mt-1 text-xs">{errors.address.neighborhood.message}</small>}
                         </div>
                         <div className="field col-5 p-1 mb-2">
                             <label htmlFor="zipCode" className="text-xs font-bold mb-1 block">CEP</label>
-                            <InputMask 
-                                id="zipCode"
-                                mask="99999-999"
-                                className="w-full p-inputtext-sm"
-                                value={organization.address.zipCode} 
-                                onChange={(e) => handleZipCodeChange(e.value || '')}
-                                placeholder="00000-000"
+                            <Controller
+                                name="address.zipCode"
+                                control={control}
+                                render={({ field }) => (
+                                    <InputMask 
+                                        id="zipCode"
+                                        mask="99999-999"
+                                        className={`w-full p-inputtext-sm ${errors.address?.zipCode ? 'p-invalid' : ''}`}
+                                        value={field.value} 
+                                        onChange={(e) => handleZipCodeChange(e.value || '')}
+                                        placeholder="00000-000"
+                                    />
+                                )}
                             />
+                            {errors.address?.zipCode && <small className="p-error block mt-1 text-xs">{errors.address.zipCode.message}</small>}
                         </div>
                         <div className="field col-9 p-1 mb-2">
                             <label htmlFor="city" className="text-xs font-bold mb-1 block">Cidade</label>
-                            <InputText id="city" className="p-inputtext-sm" value={organization.address.city} onChange={(e) => onInputChange(e, 'address.city')} placeholder="Cidade" />
+                            <Controller
+                                name="address.city"
+                                control={control}
+                                render={({ field }) => (
+                                    <InputText 
+                                        id="city" 
+                                        className={`p-inputtext-sm ${errors.address?.city ? 'p-invalid' : ''}`} 
+                                        value={field.value} 
+                                        onChange={(e) => field.onChange(e.target.value)} 
+                                        placeholder="Cidade" 
+                                    />
+                                )}
+                            />
+                            {errors.address?.city && <small className="p-error block mt-1 text-xs">{errors.address.city.message}</small>}
                         </div>
                         <div className="field col-3 p-1 mb-2">
                             <label htmlFor="stateCode" className="text-xs font-bold mb-1 block">UF</label>
-                            <FederalStateSelector 
-                                value={organization.address.stateCode} 
-                                onChange={(val) => {
-                                    setOrganization(prev => ({
-                                        ...prev,
-                                        address: {
-                                            ...prev.address,
-                                            stateCode: val
-                                        }
-                                    }));
-                                }}
-                                className="w-full p-inputtext-sm"
+                            <Controller
+                                name="address.stateCode"
+                                control={control}
+                                render={({ field }) => (
+                                    <FederalStateSelector 
+                                        value={field.value} 
+                                        onChange={(val) => field.onChange(val)}
+                                        className={`w-full p-inputtext-sm ${errors.address?.stateCode ? 'p-invalid' : ''}`}
+                                    />
+                                )}
                             />
+                            {errors.address?.stateCode && <small className="p-error block mt-1 text-xs">{errors.address.stateCode.message}</small>}
                         </div>
                     </div>
                 </div>

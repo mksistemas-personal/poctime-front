@@ -4,11 +4,14 @@ import {InputText} from 'primereact/inputtext';
 import {Button} from 'primereact/button';
 import {Toast} from 'primereact/toast';
 import {OrganizationService} from './OrganizationService';
-import {IOrganization} from './OrganizationStructures';
+import {IOrganization, OrganizationFormData, organizationSchema} from './OrganizationStructures';
 import OrganizationSelector from './OrganizationSelector';
 import {InputMask} from "primereact/inputmask";
-import {IZipCodeResponse, ZipCodeService} from '../shared/zipcode/ZipCodeService';
+import {ZipCodeService} from '../shared/zipcode/ZipCodeService';
 import FederalStateSelector from '../shared/states/FederalStateSelector';
+import {Controller, useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {classNames} from "primereact/utils";
 
 interface OrganizationManagerProps {
     visible: boolean;
@@ -35,188 +38,111 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
         }
     };
 
-    const [organization, setOrganization] = useState<IOrganization>(emptyOrganization);
+    const {
+        control,
+        handleSubmit,
+        formState: { errors },
+        reset,
+        setValue,
+        getValues,
+        watch
+    } = useForm<OrganizationFormData>({
+        resolver: zodResolver(organizationSchema),
+        defaultValues: emptyOrganization
+    });
+
     const [selectedOrgProj, setSelectedOrgProj] = useState<any>(null);
     const [selectedRespProj, setSelectedRespProj] = useState<any>(null);
     const [isManualEntry, setIsManualEntry] = useState(false);
     const [isRespManualEntry, setIsRespManualEntry] = useState(false);
-    const [emailError, setEmailError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
     const toast = useRef<Toast>(null);
-
-    const validateEmail = (email: string) => {
-        if (!email) {
-            setEmailError(null);
-            return true;
-        }
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const isValid = emailRegex.test(email);
-        setEmailError(isValid ? null : 'E-mail inválido');
-        return isValid;
-    };
-
-    const onInputChange = (e: React.ChangeEvent<HTMLInputElement>, path: string) => {
-        const val = e.target.value;
-        const keys = path.split('.');
-        
-        if (path === 'responsibleEmail') {
-            validateEmail(val);
-        }
-        
-        setOrganization(prev => {
-            const newState = { ...prev };
-            let current: any = newState;
-            for (let i = 0; i < keys.length - 1; i++) {
-                current = current[keys[i]];
-            }
-            current[keys[keys.length - 1]] = val;
-            return { ...newState };
-        });
-    };
 
     const handleOrgSelect = (e: any) => {
         const selected = e.value;
         setSelectedOrgProj(selected);
-        setEmailError(null);
         if (selected) {
-            setOrganization(prev => ({
-                ...prev,
-                organizationPerson: {
-                    ...prev.organizationPerson,
-                    id: selected.personId || '',
-                    name: selected.personName,
-                    document: { 
-                        ...prev.organizationPerson.document, 
-                        identifier: selected.documentNumber 
-                    }
+            const currentOrgPerson = getValues('organizationPerson');
+            setValue('organizationPerson', {
+                ...currentOrgPerson,
+                id: selected.personId || '',
+                name: selected.personName,
+                document: {
+                    ...currentOrgPerson.document,
+                    identifier: selected.documentNumber
                 }
-            }));
+            }, { shouldValidate: true });
             setIsManualEntry(false);
         } else {
-            // Se limpar a seleção
-            setOrganization(prev => ({
-                ...prev,
-                organizationPerson: emptyOrganization.organizationPerson
-            }));
+            setValue('organizationPerson', emptyOrganization.organizationPerson, { shouldValidate: true });
         }
     };
 
     const handleRespSelect = (e: any) => {
         const selected = e.value;
         setSelectedRespProj(selected);
-        setEmailError(null);
         if (selected) {
-            setOrganization(prev => ({
-                ...prev,
-                responsiblePerson: {
-                    ...prev.responsiblePerson,
-                    id: selected.personId || '',
-                    name: selected.personName,
-                    document: { 
-                        ...prev.responsiblePerson.document, 
-                        identifier: selected.documentNumber 
-                    }
+            const currentRespPerson = getValues('responsiblePerson');
+            setValue('responsiblePerson', {
+                ...currentRespPerson,
+                id: selected.personId || '',
+                name: selected.personName,
+                document: {
+                    ...currentRespPerson.document,
+                    identifier: selected.documentNumber
                 }
-            }));
+            }, { shouldValidate: true });
             setIsRespManualEntry(false);
         } else {
-            setOrganization(prev => ({
-                ...prev,
-                responsiblePerson: emptyOrganization.responsiblePerson
-            }));
+            setValue('responsiblePerson', emptyOrganization.responsiblePerson, { shouldValidate: true });
         }
     };
 
-    const handleZipCodeChange = async (zipData: IZipCodeResponse | string) => {
-        if (typeof zipData === 'string') {
-            const cleanZip = zipData.replace(/\D/g, '');
-            
-            setOrganization(prev => ({
-                ...prev,
-                address: {
-                    ...prev.address,
-                    zipCode: zipData
-                }
-            }));
+    const handleZipCodeChange = async (zipValue: string) => {
+        setValue('address.zipCode', zipValue, { shouldValidate: true });
+        const cleanZip = zipValue.replace(/\D/g, '');
 
-            if (cleanZip.length === 8) {
-                try {
-                    const response = await ZipCodeService.getZipCode(cleanZip);
-                    if (response) {
-                        setOrganization(prev => ({
-                            ...prev,
-                            address: {
-                                ...prev.address,
-                                street: prev.address.street || response.street,
-                                neighborhood: prev.address.neighborhood || response.neighborhood,
-                                city: prev.address.city || response.city,
-                                stateCode: prev.address.stateCode || response.state
-                            }
-                        }));
-                    }
-                } catch (error) {
-                    console.error("Erro ao buscar CEP:", error);
+        if (cleanZip.length === 8) {
+            try {
+                const response = await ZipCodeService.getZipCode(cleanZip);
+                if (response) {
+                    const currentAddress = getValues('address');
+                    setValue('address', {
+                        ...currentAddress,
+                        street: currentAddress.street || response.street,
+                        neighborhood: currentAddress.neighborhood || response.neighborhood,
+                        city: currentAddress.city || response.city,
+                        stateCode: currentAddress.stateCode || response.state
+                    }, { shouldValidate: true });
                 }
+            } catch (error) {
+                console.error("Erro ao buscar CEP:", error);
             }
-        } else {
-            setOrganization(prev => ({
-                ...prev,
-                address: {
-                    ...prev.address,
-                    zipCode: zipData.zipCode,
-                    street: prev.address.street || zipData.street,
-                    neighborhood: prev.address.neighborhood || zipData.neighborhood,
-                    city: prev.address.city || zipData.city,
-                    stateCode: prev.address.stateCode || zipData.state
-                }
-            }));
         }
     };
 
     const handleAddNew = () => {
-        setOrganization(prev => ({
-            ...prev,
-            organizationPerson: emptyOrganization.organizationPerson,
-            address: { ...prev.address, city: '' }
-        }));
+        setValue('organizationPerson', emptyOrganization.organizationPerson);
+        setValue('address.city', '');
         setSelectedOrgProj(null);
         setIsManualEntry(true);
-        setEmailError(null);
     };
 
     const handleRespAddNew = () => {
-        setOrganization(prev => ({
-            ...prev,
-            responsiblePerson: emptyOrganization.responsiblePerson
-        }));
+        setValue('responsiblePerson', emptyOrganization.responsiblePerson);
         setSelectedRespProj(null);
         setIsRespManualEntry(true);
-        setEmailError(null);
     };
 
-    const handleSave = async () => {
-        if (organization.responsibleEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(organization.responsibleEmail)) {
-            toast.current?.show({
-                severity: 'warn',
-                summary: 'Atenção',
-                detail: 'Por favor, insira um e-mail válido para o responsável.',
-                life: 3000
-            });
-            return;
-        }
-
+    const handleSave = async (data: OrganizationFormData) => {
+        setLoading(true);
         try {
-            const dataToSave = { ...organization };
-            const savedOrg = await OrganizationService.saveOrganization(dataToSave);
+            const savedOrg = await OrganizationService.saveOrganization(data as IOrganization);
             if (onSave) {
                 onSave(savedOrg);
             }
-            onHide(); // Fecha a barra lateral após sucesso
-            setOrganization(emptyOrganization); // Reseta o formulário
-            setSelectedOrgProj(null);
-            setSelectedRespProj(null);
-            setIsManualEntry(false);
-            setIsRespManualEntry(false);
-            setEmailError(null);
+            onHide();
+            handleCancel();
         } catch (error: any) {
             console.error("Erro ao salvar organização:", error);
             toast.current?.show({
@@ -225,23 +151,24 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                 detail: error.message || 'Erro ao salvar organização',
                 life: 3000
             });
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleCancel = () => {
-        setOrganization(emptyOrganization);
+        reset(emptyOrganization);
         setSelectedOrgProj(null);
         setSelectedRespProj(null);
         setIsManualEntry(false);
         setIsRespManualEntry(false);
-        setEmailError(null);
         onHide();
     };
 
     const footer = (
         <div className="flex justify-content-end gap-2 mt-4">
             <Button label="Cancelar" icon="pi pi-times" outlined onClick={handleCancel} rounded size="small" className="p-button-secondary" />
-            <Button label="Salvar" icon="pi pi-check" onClick={handleSave} rounded size="small"/>
+            <Button label="Salvar" icon="pi pi-check" onClick={handleSubmit(handleSave)} loading={loading} rounded size="small"/>
         </div>
     );
 
@@ -269,13 +196,21 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                                 />
                             ) : (
                             <div className="flex gap-2">
-                                <InputText 
-                                    id="orgName" 
-                                    className="p-inputtext-sm flex-1" 
-                                    value={organization.organizationPerson.name} 
-                                    onChange={(e) => onInputChange(e, 'organizationPerson.name')} 
-                                    placeholder="Digite o novo nome"
-                                    autoFocus
+                                <Controller
+                                    name="organizationPerson.name"
+                                    control={control}
+                                    render={({ field, fieldState }) => (
+                                        <div className="flex-1">
+                                            <InputText 
+                                                id={field.name}
+                                                {...field}
+                                                className={classNames('p-inputtext-sm w-full', { 'p-invalid': fieldState.error })}
+                                                placeholder="Digite o novo nome"
+                                                autoFocus
+                                            />
+                                            {fieldState.error && <small className="p-error">{fieldState.error.message}</small>}
+                                        </div>
+                                    )}
                                 />
                                 <Button 
                                     icon="pi pi-search" 
@@ -283,11 +218,7 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                                     onClick={() => {
                                         setIsManualEntry(false);
                                         setSelectedOrgProj(null);
-                                        setOrganization(prev => ({
-                                            ...prev,
-                                            organizationPerson: emptyOrganization.organizationPerson,
-                                            address: { ...prev.address, city: '' }
-                                        }));
+                                        setValue('organizationPerson', emptyOrganization.organizationPerson);
                                     }} 
                                     tooltip="Voltar"
                                     tooltipOptions={{ className: 'text-xs', position: 'top', mouseTrack: true, mouseTrackTop: 15 }}
@@ -297,14 +228,22 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                     </div>
                     <div className="field mb-2">
                         <label htmlFor="cnpj" className="text-xs font-bold mb-1 block">CNPJ</label>
-                        <InputMask
-                            id="cnpj" 
-                            className="p-inputtext-sm"
-                            mask="99.999.999/9999-99"
-                            value={organization.organizationPerson.document.identifier}
-                            placeholder="00.000.000/0000-00"
-                            onChange={(e) => onInputChange(e as any, 'organizationPerson.document.identifier')}
-                            disabled={!isManualEntry && organization.organizationPerson.name !== ''}
+                        <Controller
+                            name="organizationPerson.document.identifier"
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <>
+                                    <InputMask
+                                        id={field.name}
+                                        {...field}
+                                        className={classNames('p-inputtext-sm w-full', { 'p-invalid': fieldState.error })}
+                                        mask="99.999.999/9999-99"
+                                        placeholder="00.000.000/0000-00"
+                                        disabled={!isManualEntry && watch('organizationPerson.name') !== ''}
+                                    />
+                                    {fieldState.error && <small className="p-error">{fieldState.error.message}</small>}
+                                </>
+                            )}
                         />
                     </div>
                 </div>
@@ -323,13 +262,21 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                             />
                         ) : (
                             <div className="flex gap-2">
-                                <InputText 
-                                    id="respName" 
-                                    className="p-inputtext-sm flex-1" 
-                                    value={organization.responsiblePerson.name} 
-                                    onChange={(e) => onInputChange(e, 'responsiblePerson.name')} 
-                                    placeholder="Digite o nome do responsável"
-                                    autoFocus
+                                <Controller
+                                    name="responsiblePerson.name"
+                                    control={control}
+                                    render={({ field, fieldState }) => (
+                                        <div className="flex-1">
+                                            <InputText 
+                                                id={field.name}
+                                                {...field}
+                                                className={classNames('p-inputtext-sm w-full', { 'p-invalid': fieldState.error })}
+                                                placeholder="Digite o nome do responsável"
+                                                autoFocus
+                                            />
+                                            {fieldState.error && <small className="p-error">{fieldState.error.message}</small>}
+                                        </div>
+                                    )}
                                 />
                                 <Button 
                                     icon="pi pi-search" 
@@ -337,10 +284,7 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                                     onClick={() => {
                                         setIsRespManualEntry(false);
                                         setSelectedRespProj(null);
-                                        setOrganization(prev => ({
-                                            ...prev,
-                                            responsiblePerson: emptyOrganization.responsiblePerson
-                                        }));
+                                        setValue('responsiblePerson', emptyOrganization.responsiblePerson);
                                     }} 
                                     tooltip="Voltar"
                                     tooltipOptions={{ className: 'text-xs', position: 'top', mouseTrack: true, mouseTrackTop: 15 }}
@@ -350,27 +294,42 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                     </div>
                     <div className="field mb-2">
                         <label htmlFor="cpf" className="text-xs font-bold mb-1 block">CPF</label>
-                        <InputMask 
-                            id="cpf" 
-                            className="p-inputtext-sm" 
-                            mask="999.999.999-99"
-                            value={organization.responsiblePerson.document.identifier} 
-                            placeholder="000.000.000-00"
-                            onChange={(e) => onInputChange(e as any, 'responsiblePerson.document.identifier')} 
-                            disabled={!isRespManualEntry && organization.responsiblePerson.name !== ''}
+                        <Controller
+                            name="responsiblePerson.document.identifier"
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <>
+                                    <InputMask 
+                                        id={field.name}
+                                        {...field}
+                                        className={classNames('p-inputtext-sm w-full', { 'p-invalid': fieldState.error })}
+                                        mask="999.999.999-99"
+                                        placeholder="000.000.000-00"
+                                        disabled={!isRespManualEntry && watch('responsiblePerson.name') !== ''}
+                                    />
+                                    {fieldState.error && <small className="p-error">{fieldState.error.message}</small>}
+                                </>
+                            )}
                         />
                     </div>
                     <div className="field mb-2">
                         <label htmlFor="respEmail" className="text-xs font-bold mb-1 block">E-mail</label>
-                        <InputText 
-                            id="respEmail"
-                            keyfilter="email"
-                            className={`p-inputtext-sm ${emailError ? 'p-invalid' : ''}`} 
-                            value={organization.responsibleEmail} 
-                            onChange={(e) => onInputChange(e, 'responsibleEmail')} 
-                            placeholder="exemplo@email.com"
+                        <Controller
+                            name="responsibleEmail"
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <>
+                                    <InputText 
+                                        id={field.name}
+                                        {...field}
+                                        keyfilter="email"
+                                        className={classNames('p-inputtext-sm w-full', { 'p-invalid': fieldState.error })}
+                                        placeholder="exemplo@email.com"
+                                    />
+                                    {fieldState.error && <small className="p-error block mt-1 text-xs">{fieldState.error.message}</small>}
+                                </>
+                            )}
                         />
-                        {emailError && <small className="p-error block mt-1 text-xs">{emailError}</small>}
                     </div>
                 </div>
 
@@ -379,45 +338,91 @@ const OrganizationManager: React.FC<OrganizationManagerProps> = ({ visible, onHi
                     <div className="grid p-0 m-0">
                         <div className="field col-9 p-1 mb-2">
                             <label htmlFor="street" className="text-xs font-bold mb-1 block">Rua</label>
-                            <InputText id="street" className="p-inputtext-sm" value={organization.address.street} onChange={(e) => onInputChange(e, 'address.street')} placeholder="Rua, Avenida, etc." />
+                            <Controller
+                                name="address.street"
+                                control={control}
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <InputText id={field.name} {...field} className={classNames('p-inputtext-sm w-full', { 'p-invalid': fieldState.error })} placeholder="Rua, Avenida, etc." />
+                                        {fieldState.error && <small className="p-error">{fieldState.error.message}</small>}
+                                    </>
+                                )}
+                            />
                         </div>
                         <div className="field col-3 p-1 mb-2">
                             <label htmlFor="number" className="text-xs font-bold mb-1 block">Nº</label>
-                            <InputText id="number" className="p-inputtext-sm" value={organization.address.number} onChange={(e) => onInputChange(e, 'address.number')} placeholder="123" />
+                            <Controller
+                                name="address.number"
+                                control={control}
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <InputText id={field.name} {...field} className={classNames('p-inputtext-sm w-full', { 'p-invalid': fieldState.error })} placeholder="123" />
+                                        {fieldState.error && <small className="p-error">{fieldState.error.message}</small>}
+                                    </>
+                                )}
+                            />
                         </div>
                         <div className="field col-7 p-1 mb-2">
                             <label htmlFor="neighborhood" className="text-xs font-bold mb-1 block">Bairro</label>
-                            <InputText id="neighborhood" className="p-inputtext-sm" value={organization.address.neighborhood} onChange={(e) => onInputChange(e, 'address.neighborhood')} placeholder="Bairro" />
+                            <Controller
+                                name="address.neighborhood"
+                                control={control}
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <InputText id={field.name} {...field} className={classNames('p-inputtext-sm w-full', { 'p-invalid': fieldState.error })} placeholder="Bairro" />
+                                        {fieldState.error && <small className="p-error">{fieldState.error.message}</small>}
+                                    </>
+                                )}
+                            />
                         </div>
                         <div className="field col-5 p-1 mb-2">
                             <label htmlFor="zipCode" className="text-xs font-bold mb-1 block">CEP</label>
-                            <InputMask 
-                                id="zipCode"
-                                mask="99999-999"
-                                className="w-full p-inputtext-sm"
-                                value={organization.address.zipCode} 
-                                onChange={(e) => handleZipCodeChange(e.value || '')}
-                                placeholder="00000-000"
+                            <Controller
+                                name="address.zipCode"
+                                control={control}
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <InputMask 
+                                            id={field.name}
+                                            {...field}
+                                            mask="99999-999"
+                                            className={classNames('w-full p-inputtext-sm', { 'p-invalid': fieldState.error })}
+                                            onChange={(e) => handleZipCodeChange(e.value || '')}
+                                            placeholder="00000-000"
+                                        />
+                                        {fieldState.error && <small className="p-error">{fieldState.error.message}</small>}
+                                    </>
+                                )}
                             />
                         </div>
                         <div className="field col-9 p-1 mb-2">
                             <label htmlFor="city" className="text-xs font-bold mb-1 block">Cidade</label>
-                            <InputText id="city" className="p-inputtext-sm" value={organization.address.city} onChange={(e) => onInputChange(e, 'address.city')} placeholder="Cidade" />
+                            <Controller
+                                name="address.city"
+                                control={control}
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <InputText id={field.name} {...field} className={classNames('p-inputtext-sm w-full', { 'p-invalid': fieldState.error })} placeholder="Cidade" />
+                                        {fieldState.error && <small className="p-error">{fieldState.error.message}</small>}
+                                    </>
+                                )}
+                            />
                         </div>
                         <div className="field col-3 p-1 mb-2">
                             <label htmlFor="stateCode" className="text-xs font-bold mb-1 block">UF</label>
-                            <FederalStateSelector 
-                                value={organization.address.stateCode} 
-                                onChange={(val) => {
-                                    setOrganization(prev => ({
-                                        ...prev,
-                                        address: {
-                                            ...prev.address,
-                                            stateCode: val
-                                        }
-                                    }));
-                                }}
-                                className="w-full p-inputtext-sm"
+                            <Controller
+                                name="address.stateCode"
+                                control={control}
+                                render={({ field, fieldState }) => (
+                                    <>
+                                        <FederalStateSelector 
+                                            value={field.value} 
+                                            onChange={field.onChange}
+                                            className={classNames('w-full p-inputtext-sm', { 'p-invalid': fieldState.error })}
+                                        />
+                                        {fieldState.error && <small className="p-error">{fieldState.error.message}</small>}
+                                    </>
+                                )}
                             />
                         </div>
                     </div>

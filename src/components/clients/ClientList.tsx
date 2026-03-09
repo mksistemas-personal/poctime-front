@@ -5,10 +5,11 @@ import {Panel} from 'primereact/panel';
 import {InputText} from 'primereact/inputtext';
 import {ConfirmDialog, confirmDialog} from 'primereact/confirmdialog';
 import {Toast} from 'primereact/toast';
+import {Controller, useForm} from 'react-hook-form';
 import FederalStateSelector from '../shared/states/FederalStateSelector';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
 import FilterList from '../shared/components/list/FilterList';
-import {IClient} from "./ClientStructures";
+import {ClientFilter, IClient} from "./ClientStructures";
 import {ClientService} from "./ClientService";
 import ClientDetails from "./ClientDetails";
 import ClientManager from "./ClientManager";
@@ -18,6 +19,14 @@ import ActionRowList from '../shared/components/list/ActionRowList';
 import {API_CONFIG} from "../../config/ApiConfig";
 import FooterList from "../shared/components/list/FooterList";
 
+
+const emptyFilter: ClientFilter = {
+    name: '',
+    clientEmail: '',
+    street: '',
+    city: '',
+    stateCode: ''
+};
 
 const ClientList: React.FC = () => {
     const [clients, setClients] = useState<IClient[]>([]);
@@ -30,12 +39,11 @@ const ClientList: React.FC = () => {
     const [displayUpdater, setDisplayUpdater] = useState<boolean>(false);
     const [clientToEdit, setClientToEdit] = useState<IClient | null>(null);
     const toast = React.useRef<Toast>(null);
-    const [filters, setFilters] = useState<any>({
-        name: '',
-        street: '',
-        city: '',
-        stateCode: ''
+
+    const { control, handleSubmit, reset } = useForm<ClientFilter>({
+        defaultValues: emptyFilter as ClientFilter
     });
+
     const loadingRef = React.useRef(loading);
     const isLastPageRef = React.useRef(isLastPage);
 
@@ -47,13 +55,12 @@ const ClientList: React.FC = () => {
         isLastPageRef.current = isLastPage;
     }, [isLastPage]);
 
-    const loadClients = useCallback(async (pageNumber: number, currentFilters: any = filters) => {
+    const loadClients = useCallback(async (pageNumber: number, currentFilters: ClientFilter) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
             const data = await ClientService.getClients(pageNumber, API_CONFIG.ROWS_PER_PAGE, currentFilters);
 
-            // Garantir que estamos pegando o objeto de organização, caso venha envolvido
             const content = data.content.map((item: any) => {
                 if (item.client) {
                     return { ...item.client, id: item.client.id  };
@@ -61,7 +68,6 @@ const ClientList: React.FC = () => {
                 return { ...item, id: item.id };
             });
 
-            // Acumula os dados se não for a primeira página
             setClients(prev => pageNumber === 0 ? content : [...prev, ...content]);
             setIsLastPage(data.last);
             setPage(pageNumber);
@@ -70,32 +76,20 @@ const ClientList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, []);
 
-    // Carrega a primeira página ao iniciar
     useEffect(() => {
-        loadClients(0);
+        void loadClients(0, emptyFilter);
     }, [loadClients]);
 
 
-    const onFilterChange = (e: any, field: string) => {
-        const value = e.target.value;
-        setFilters((prev: any) => ({ ...prev, [field]: value }));
-    };
-
-    const applyFilters = () => {
-        loadClients(0, filters);
+    const applyFilters = async (data: ClientFilter) => {
+        loadClients(0, data);
     };
 
     const clearFilters = () => {
-        const emptyFilters = {
-            name: '',
-            street: '',
-            city: '',
-            stateCode: ''
-        };
-        setFilters(emptyFilters);
-        loadClients(0, emptyFilters);
+        reset(emptyFilter);
+        loadClients(0, emptyFilter);
     };
 
     const confirmDelete = (client: IClient) => {
@@ -115,7 +109,7 @@ const ClientList: React.FC = () => {
             setLoading(true);
             await ClientService.deleteClient(id);
             toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'Cliente excluído com sucesso', life: 3000 });
-            loadClients(0); // Recarrega a lista
+            loadClients(0, emptyFilter);
         } catch (error: any) {
             toast.current?.show({ severity: 'error', summary: 'Erro', detail: error.message || 'Erro ao excluir cliente', life: 3000 });
         } finally {
@@ -140,7 +134,7 @@ const ClientList: React.FC = () => {
             <FooterList
                 onLoading={loading}
                 isLastPage={isLastPage}
-                onButtonClick={() => loadClients(page + 1)}
+                onButtonClick={() => loadClients(page + 1, emptyFilter)}
                 buttonLabel="Carregar mais clientes"
                 moreDataLabel="Todas os clientes foram carregados"
             />
@@ -180,29 +174,59 @@ const ClientList: React.FC = () => {
             <Toast ref={toast} />
             <ConfirmDialog />
             <Panel headerTemplate={headerTemplate} className="flex flex-column flex-1 min-h-0" pt={{ content: { className: 'flex flex-column flex-1 min-h-0' } }}>
-                <FilterList onClear={clearFilters} onSearch={applyFilters} className="mb-2">
+                <FilterList onClear={clearFilters} onSearch={handleSubmit(applyFilters)} className="mb-2">
                     <div className="field sm:col-6 md:col-2 mb-0">
                         <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Nome do Cliente</label>
-                        <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Cliente..." />
+                        <Controller
+                            name="name"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText {...field} id="name" className="p-inputtext-sm" placeholder="Ex: Cliente..." />
+                            )}
+                        />
                     </div>
                     <div className="field sm:col-6 md:col-2 mb-0">
                         <label htmlFor="clientEmail" className="text-xs font-bold text-left block mb-2">E-mail do Cliente</label>
-                        <InputText id="clientEmail" value={filters.clientEmail} onChange={(e) => onFilterChange(e, 'clientEmail')} className="p-inputtext-sm" />
+                        <Controller
+                            name="clientEmail"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText {...field} id="clientEmail" className="p-inputtext-sm" />
+                            )}
+                        />
                     </div>
                     <div className="field sm:col-6 md:col-2 mb-0">
                         <label htmlFor="street" className="text-xs font-bold text-left block mb-2">Rua</label>
-                        <InputText id="street" value={filters.street} onChange={(e) => onFilterChange(e, 'street')} className="p-inputtext-sm" />
+                        <Controller
+                            name="street"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText {...field} id="street" className="p-inputtext-sm" />
+                            )}
+                        />
                     </div>
                     <div className="field sm:col-6 md:col-2 mb-0">
                         <label htmlFor="city" className="text-xs font-bold text-left block mb-2">Cidade</label>
-                        <InputText id="city" value={filters.city} onChange={(e) => onFilterChange(e, 'city')} className="p-inputtext-sm" />
+                        <Controller
+                            name="city"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText {...field} id="city" className="p-inputtext-sm" />
+                            )}
+                        />
                     </div>
                     <div className="field sm:col-6 md:col-2 mb-0">
                         <label htmlFor="stateCode" className="text-xs font-bold block text-left mb-2">UF</label>
-                        <FederalStateSelector 
-                            value={filters.stateCode} 
-                            onChange={(val) => setFilters((prev: any) => ({ ...prev, stateCode: val }))}
-                            className="w-full p-inputtext-sm"
+                        <Controller
+                            name="stateCode"
+                            control={control}
+                            render={({ field }) => (
+                                <FederalStateSelector 
+                                    value={field.value} 
+                                    onChange={field.onChange}
+                                    className="w-full p-inputtext-sm"
+                                />
+                            )}
                         />
                     </div>
                 </FilterList>
@@ -245,7 +269,7 @@ const ClientList: React.FC = () => {
                 visible={displayManager}
                 onHide={() => setDisplayManager(false)}
                 onSave={(newOrg) => {
-                        loadClients(0);
+                    loadClients(0, emptyFilter);
                     }}
                 />
 
@@ -257,7 +281,7 @@ const ClientList: React.FC = () => {
                     setClientToEdit(null);
                 }}
                 onSave={(updatedOrg) => {
-                    loadClients(0);
+                    loadClients(0, emptyFilter);
                 }}
             />
 

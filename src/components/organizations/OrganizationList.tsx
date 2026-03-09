@@ -5,10 +5,12 @@ import {Panel} from 'primereact/panel';
 import {InputText} from 'primereact/inputtext';
 import {ConfirmDialog, confirmDialog} from 'primereact/confirmdialog';
 import {Toast} from 'primereact/toast';
+import {Controller, useForm} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
 import FederalStateSelector from '../shared/states/FederalStateSelector';
 import {OrganizationService} from './OrganizationService';
 import FilterList from '../shared/components/list/FilterList';
-import {IOrganization} from './OrganizationStructures';
+import {IOrganization, OrganizationFilterData, organizationFilterSchema} from './OrganizationStructures';
 import DocumentDisplay from "../shared/document/DocumentDisplay";
 import OrganizationDetails from './OrganizationDetails';
 import OrganizationManager from './OrganizationManager';
@@ -29,14 +31,19 @@ const OrganizationList: React.FC = () => {
     const [displayUpdater, setDisplayUpdater] = useState<boolean>(false);
     const [organizationToEdit, setOrganizationToEdit] = useState<IOrganization | null>(null);
     const toast = React.useRef<Toast>(null);
-    const [filters, setFilters] = useState<any>({
-        name: '',
-        respName: '',
-        responsibleEmail: '',
-        street: '',
-        city: '',
-        stateCode: ''
+
+    const { control, handleSubmit, reset, getValues } = useForm<OrganizationFilterData>({
+        resolver: zodResolver(organizationFilterSchema),
+        defaultValues: {
+            name: '',
+            respName: '',
+            responsibleEmail: '',
+            street: '',
+            city: '',
+            stateCode: ''
+        }
     });
+
     const loadingRef = React.useRef(loading);
     const isLastPageRef = React.useRef(isLastPage);
 
@@ -49,11 +56,12 @@ const OrganizationList: React.FC = () => {
     }, [isLastPage]);
 
 
-    const loadOrganizations = useCallback(async (pageNumber: number, currentFilters: any = filters) => {
+    const loadOrganizations = useCallback(async (pageNumber: number, currentFilters?: OrganizationFilterData) => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
-            const data = await OrganizationService.getOrganizations(pageNumber, API_CONFIG.ROWS_PER_PAGE, currentFilters);
+            const filtersToUse = currentFilters || getValues();
+            const data = await OrganizationService.getOrganizations(pageNumber, API_CONFIG.ROWS_PER_PAGE, filtersToUse);
             console.log(data);
             // Garantir que estamos pegando o objeto de organização, caso venha envolvido
             const content = data.content.map((item: any) => {
@@ -72,34 +80,21 @@ const OrganizationList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, []);
 
     // Carrega a primeira página ao iniciar
     useEffect(() => {
         loadOrganizations(0);
-    }, [loadOrganizations]);
+    }, []);
 
 
-    const onFilterChange = (e: any, field: string) => {
-        const value = e.target.value;
-        setFilters((prev: any) => ({ ...prev, [field]: value }));
-    };
-
-    const applyFilters = () => {
-        loadOrganizations(0, filters);
+    const applyFilters = (data: OrganizationFilterData) => {
+        loadOrganizations(0, data);
     };
 
     const clearFilters = () => {
-        const emptyFilters = {
-            name: '',
-            respName: '',
-            responsibleEmail: '',
-            street: '',
-            city: '',
-            stateCode: ''
-        };
-        setFilters(emptyFilters);
-        loadOrganizations(0, emptyFilters);
+        reset();
+        loadOrganizations(0, getValues());
     };
 
     const confirmDelete = (organization: IOrganization) => {
@@ -181,33 +176,95 @@ const OrganizationList: React.FC = () => {
             <Toast ref={toast} />
             <ConfirmDialog />
             <Panel headerTemplate={headerTemplate} className="flex flex-column flex-1 min-h-0" pt={{ content: { className: 'flex flex-column flex-1 min-h-0' } }}>
-                <FilterList onClear={clearFilters} onSearch={applyFilters}>
+                <FilterList onClear={clearFilters} onSearch={() => { void handleSubmit(applyFilters)(); }}>
                     <div className="field sm:col-6 md:col-2 mb-0">
                         <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Nome da Organização</label>
-                        <InputText id="name" value={filters.name} onChange={(e) => onFilterChange(e, 'name')} className="p-inputtext-sm" placeholder="Ex: Organizacao..." />
+                        <Controller
+                            name="name"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText 
+                                    {...field} 
+                                    id="name" 
+                                    className="p-inputtext-sm" 
+                                    placeholder="Ex: Organizacao..." 
+                                    onKeyDown={(e) => e.key === 'Enter' && void handleSubmit(applyFilters)()}
+                                />
+                            )}
+                        />
                     </div>
                     <div className="field sm:col-6 md:col-2 mb-0">
                         <label htmlFor="respName" className="text-xs font-bold text-left block mb-2">Nome do Responsável</label>
-                        <InputText id="respName" value={filters.respName} onChange={(e) => onFilterChange(e, 'respName')} className="p-inputtext-sm" />
+                        <Controller
+                            name="respName"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText 
+                                    {...field} 
+                                    id="respName" 
+                                    className="p-inputtext-sm" 
+                                    onKeyDown={(e) => e.key === 'Enter' && void handleSubmit(applyFilters)()}
+                                />
+                            )}
+                        />
                     </div>
                     <div className="field sm:col-6 md:col-2 mb-0">
                         <label htmlFor="responsibleEmail" className="text-xs font-bold text-left block mb-2">E-mail do Responsável</label>
-                        <InputText id="responsibleEmail" value={filters.responsibleEmail} onChange={(e) => onFilterChange(e, 'responsibleEmail')} className="p-inputtext-sm" />
+                        <Controller
+                            name="responsibleEmail"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText 
+                                    {...field} 
+                                    id="responsibleEmail" 
+                                    className="p-inputtext-sm" 
+                                    onKeyDown={(e) => e.key === 'Enter' && void handleSubmit(applyFilters)()}
+                                />
+                            )}
+                        />
                     </div>
                     <div className="field sm:col-6 md:col-2 mb-0">
                         <label htmlFor="street" className="text-xs font-bold text-left block mb-2">Rua</label>
-                        <InputText id="street" value={filters.street} onChange={(e) => onFilterChange(e, 'street')} className="p-inputtext-sm" />
+                        <Controller
+                            name="street"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText 
+                                    {...field} 
+                                    id="street" 
+                                    className="p-inputtext-sm" 
+                                    onKeyDown={(e) => e.key === 'Enter' && void handleSubmit(applyFilters)()}
+                                />
+                            )}
+                        />
                     </div>
                     <div className="field sm:col-6 md:col-2 mb-0">
                         <label htmlFor="city" className="text-xs font-bold text-left block mb-2">Cidade</label>
-                        <InputText id="city" value={filters.city} onChange={(e) => onFilterChange(e, 'city')} className="p-inputtext-sm" />
+                        <Controller
+                            name="city"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText 
+                                    {...field} 
+                                    id="city" 
+                                    className="p-inputtext-sm" 
+                                    onKeyDown={(e) => e.key === 'Enter' && void handleSubmit(applyFilters)()}
+                                />
+                            )}
+                        />
                     </div>
                     <div className="field sm:col-6 md:col-2 mb-0">
                         <label htmlFor="stateCode" className="text-xs font-bold block text-left mb-2">UF</label>
-                        <FederalStateSelector 
-                            value={filters.stateCode} 
-                            onChange={(val) => setFilters((prev: any) => ({ ...prev, stateCode: val }))}
-                            className="w-full p-inputtext-sm"
+                        <Controller
+                            name="stateCode"
+                            control={control}
+                            render={({ field }) => (
+                                <FederalStateSelector 
+                                    value={field.value} 
+                                    onChange={field.onChange}
+                                    className="w-full p-inputtext-sm"
+                                />
+                            )}
                         />
                     </div>
                 </FilterList>

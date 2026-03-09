@@ -4,7 +4,7 @@ import {confirmDialog, ConfirmDialog} from "primereact/confirmdialog";
 import {Panel} from "primereact/panel";
 import {InputText} from "primereact/inputtext";
 import FilterList from "../shared/components/list/FilterList";
-import {IEconomicGroup} from "./EconomicGroupStructures";
+import {EconomicGroupFilterData, economicGroupFilterSchema, IEconomicGroup} from "./EconomicGroupStructures";
 import {EconomicGroupService} from "./EconomicGroupService";
 import {Column} from "primereact/column";
 import {DataTable} from "primereact/datatable";
@@ -16,6 +16,8 @@ import HeaderList from '../shared/components/list/HeaderList';
 import ActionRowList from '../shared/components/list/ActionRowList';
 import {API_CONFIG} from "../../config/ApiConfig";
 import FooterList from "../shared/components/list/FooterList";
+import {Controller, useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
 
 
 const EconomicGroupList: React.FC = () => {
@@ -30,7 +32,18 @@ const EconomicGroupList: React.FC = () => {
     const [displayUpdater, setDisplayUpdater] = useState<boolean>(false);
     const [economicGroupToEdit, setEconomicGroupToEdit] = useState<IEconomicGroup | null>(null);
     const toast = React.useRef<Toast>(null);
-    const [filters, setFilters] = useState<string>('');
+
+    const {
+        control,
+        handleSubmit,
+        reset,
+        getValues,
+    } = useForm<EconomicGroupFilterData>({
+        resolver: zodResolver(economicGroupFilterSchema),
+        defaultValues: {
+            term: ''
+        }
+    });
 
     const loadingRef = React.useRef(loading);
     const isLastPageRef = React.useRef(isLastPage);
@@ -47,7 +60,8 @@ const EconomicGroupList: React.FC = () => {
         if (pageNumber !== 0 && (loadingRef.current || isLastPageRef.current)) return;
         try {
             setLoading(true);
-            const data = await EconomicGroupService.getAllEconomicGroups(pageNumber, API_CONFIG.ROWS_PER_PAGE, currentFilters !== undefined ? currentFilters : filters);
+            const term = currentFilters !== undefined ? currentFilters : getValues('term');
+            const data = await EconomicGroupService.getAllEconomicGroups(pageNumber, API_CONFIG.ROWS_PER_PAGE, term);
 
             const content = data.content.map((item: any) => {
                 if (item.economicGroup) {
@@ -65,30 +79,26 @@ const EconomicGroupList: React.FC = () => {
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, []);
 
     // Carrega a primeira página ao iniciar
     useEffect(() => {
-        loadEconomicGroups(0, filters);
-    }, [loadEconomicGroups, filters]);
+        loadEconomicGroups(0);
+    }, []);
 
-
-    const onFilterChange = (e: any) => {
-        setFilters(e.target.value);
-    };
 
     const onKeyDown = (e: any) => {
         if (e.key === 'Enter') {
-            applyFilters();
+            handleSubmit(applyFilters)();
         }
     };
 
-    const applyFilters = () => {
-        loadEconomicGroups(0, filters);
+    const applyFilters = (data: EconomicGroupFilterData) => {
+        loadEconomicGroups(0, data.term);
     };
 
     const clearFilters = () => {
-        setFilters('');
+        reset({ term: '' });
         loadEconomicGroups(0, '');
     };
 
@@ -109,7 +119,7 @@ const EconomicGroupList: React.FC = () => {
             setLoading(true);
             await EconomicGroupService.deleteEconomicGroup(id);
             toast.current?.show({ severity: 'success', summary: 'Sucesso', detail: 'Grupo Economico excluído com sucesso', life: 3000 });
-            loadEconomicGroups(0, filters); // Recarrega a lista
+            loadEconomicGroups(0, getValues('term')); // Recarrega a lista
         } catch (error: any) {
             toast.current?.show({ severity: 'error', summary: 'Erro', detail: error.message || 'Erro ao excluir grupo economico', life: 3000 });
         } finally {
@@ -131,7 +141,7 @@ const EconomicGroupList: React.FC = () => {
             <FooterList
                 onLoading={loading}
                 isLastPage={isLastPage}
-                onButtonClick={() => loadEconomicGroups(page + 1, filters)}
+                onButtonClick={() => loadEconomicGroups(page + 1, getValues('term'))}
                 buttonLabel="Carregar mais grupos"
                 moreDataLabel="Todos os grupos foram carregados"
             />
@@ -170,10 +180,22 @@ const EconomicGroupList: React.FC = () => {
             <Toast ref={toast} />
             <ConfirmDialog />
             <Panel headerTemplate={headerTemplate} className="flex flex-column flex-1 min-h-0" pt={{ content: { className: 'flex flex-column flex-1 min-h-0' } }}>
-                <FilterList onClear={clearFilters} onSearch={applyFilters} className="mb-2">
+                <FilterList onClear={clearFilters} onSearch={handleSubmit(applyFilters)} className="mb-2">
                     <div className="field sm:col-6 md:col-4 mb-0">
-                        <label htmlFor="name" className="text-xs font-bold text-left block mb-2">Termo de Pesquisa</label>
-                        <InputText id="name" value={filters} onChange={onFilterChange} onKeyDown={onKeyDown} className="p-inputtext-sm" placeholder="Pesquisar por nome ou descrição..." />
+                        <label htmlFor="term" className="text-xs font-bold text-left block mb-2">Termo de Pesquisa</label>
+                        <Controller
+                            name="term"
+                            control={control}
+                            render={({ field }) => (
+                                <InputText 
+                                    {...field}
+                                    id="term" 
+                                    onKeyDown={onKeyDown} 
+                                    className="p-inputtext-sm" 
+                                    placeholder="Pesquisar por nome ou descrição..." 
+                                />
+                            )}
+                        />
                     </div>
                 </FilterList>
                 <div className="flex-1 min-h-0">
@@ -216,7 +238,7 @@ const EconomicGroupList: React.FC = () => {
                 visible={displayManager}
                 onHide={() => setDisplayManager(false)}
                 onSaveSuccess={(newGroup: IEconomicGroup) => {
-                    loadEconomicGroups(0, filters);
+                    loadEconomicGroups(0, getValues('term'));
                 }}
             />
 
@@ -228,7 +250,7 @@ const EconomicGroupList: React.FC = () => {
                     setEconomicGroupToEdit(null);
                 }}
                 onSaveSuccess={(updatedEconomicGroup) => {
-                    loadEconomicGroups(0, filters);
+                    loadEconomicGroups(0, getValues('term'));
                 }}
             />
         </div>
